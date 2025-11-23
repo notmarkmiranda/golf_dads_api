@@ -36,8 +36,7 @@ gem "image_processing", "~> 1.2"
 gem "propshaft"
 
 # Authentication and Authorization
-gem "devise", "~> 4.9"
-gem "devise-jwt", "~> 0.12"
+gem "jwt", "~> 2.9"
 gem "pundit", "~> 2.4"
 
 # JSON API serialization

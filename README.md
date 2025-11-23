@@ -15,7 +15,7 @@ This API serves as the backend for an iOS application that allows golfers to pos
 
 ### Authentication & Authorization
 - **Rails 8 Authentication** - Built-in `has_secure_password` with bcrypt
-- **JWT** (planned) - Token-based authentication for API
+- **JWT** - Token-based authentication for API (24-hour expiration)
 - **Pundit** (installed) - Authorization policies
 - **Google OAuth** (planned) - OAuth2 authentication via Google Sign-In
 
@@ -91,7 +91,20 @@ Once configured, Avo admin dashboard will be available at:
 http://localhost:3000/avo
 ```
 
-## Project Status
+## Execution Plan
+
+This project is being built in **5 phases** with **33 total steps** using Test-Driven Development (TDD).
+
+**Progress Overview:**
+- ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
+- 🚧 **Phase 2:** Core Models with TDD (5/15 steps) - **33% Complete** ← Current Phase
+- ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
+- ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
+- ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
+
+**Total Project Progress: 11/33 steps (33% complete)**
+
+---
 
 ### Phase 1: Foundation ✅ COMPLETE
 - [x] Rails 8.1.1 API setup with PostgreSQL
@@ -101,48 +114,84 @@ http://localhost:3000/avo
 - [x] Database configuration complete
 - [x] Deployed to Render successfully
 
-### Phase 2: Core Models with TDD 🚧 IN PROGRESS (21% complete)
+### Phase 2: Core Models with TDD 🚧 IN PROGRESS (33% complete - 5/15 steps)
 
-**Authentication Setup (3/8 complete)**
-- [x] Generate Rails 8 authentication scaffolding
-- [x] Customize User model for API
-  - Email/password authentication
-  - OAuth fields (provider, uid, avatar_url)
-  - Password optional for OAuth users
-- [x] Write User model specs - **25 passing tests** ✅
-- [x] Create Avo resource for User with admin interface
-- [ ] Add JWT token generation and validation
-- [ ] Create API authentication controller (signup, login)
-- [ ] Write request specs for authentication endpoints
-- [ ] Add Google OAuth token verification
-- [ ] Create Google sign-in endpoint with specs
+**Authentication Setup (5/8 steps complete)**
 
-**Core Models (0/4 complete)**
-- [ ] Group model with TDD
-- [ ] GroupMembership model with TDD
-- [ ] TeeTimePosting model with TDD
-- [ ] Reservation model with TDD
+| Step | Task | Status |
+|------|------|--------|
+| 1 | Generate Rails 8 authentication scaffolding | ✅ Complete |
+| 2 | Customize User model for API (name, provider, uid, avatar_url) | ✅ Complete |
+| 3 | Write User model specs (29 passing tests) | ✅ Complete |
+| 4 | Add JWT token generation and validation (11 passing tests) | ✅ Complete |
+| 5 | Create API authentication controller (signup, login) | 🔄 Next |
+| 6 | Write request specs for authentication endpoints | ⏳ Pending |
+| 7 | Add Google OAuth token verification | ⏳ Pending |
+| 8 | Create Google sign-in endpoint with specs | ⏳ Pending |
 
-**Admin & Documentation (1/3 complete)**
-- [x] User Avo resource ✅
-- [ ] Avo resources for other models
-- [ ] Password protect Avo admin
-- [ ] Documentation updates (ongoing)
+**Core Models (0/4 steps complete)**
 
-### Phase 3: Authorization (PLANNED)
-- [ ] Pundit policies for User, Group, TeeTimePosting
-- [ ] Authorization specs
+| Step | Task | Status |
+|------|------|--------|
+| 9 | Generate Group model with TDD | ⏳ Pending |
+| 10 | Generate GroupMembership model with TDD | ⏳ Pending |
+| 11 | Generate TeeTimePosting model with TDD | ⏳ Pending |
+| 12 | Generate Reservation model with TDD | ⏳ Pending |
 
-### Phase 4: API Endpoints (PLANNED)
-- [ ] Auth endpoints (signup, login, Google OAuth)
-- [ ] Groups CRUD
-- [ ] Tee time postings CRUD
-- [ ] Reservations CRUD
+**Admin & Documentation (3/3 steps complete)**
+
+| Step | Task | Status |
+|------|------|--------|
+| 13 | Create Avo resource for User | ✅ Complete |
+| 14 | Add password protection to Avo admin | ⏳ Pending |
+| 15 | Update documentation after each step | ✅ Ongoing |
+
+**Notes:**
+- All User Avo resources will be created alongside their models
+- Documentation is updated after each major milestone
+- Password protection for Avo will be added after core models are complete
+
+### Phase 3: Authorization ⏳ PLANNED
+
+| Step | Task | Status |
+|------|------|--------|
+| 16 | Create Pundit policies for User resource | ⏳ Pending |
+| 17 | Create Pundit policies for Group resource | ⏳ Pending |
+| 18 | Create Pundit policies for TeeTimePosting resource | ⏳ Pending |
+| 19 | Write authorization specs for all policies | ⏳ Pending |
+| 20 | Integrate Pundit with API controllers | ⏳ Pending |
+
+### Phase 4: API Endpoints ⏳ PLANNED
+
+| Step | Task | Status |
+|------|------|--------|
+| 21 | Create API namespace and base controller | ⏳ Pending |
+| 22 | Implement Auth endpoints (signup, login, Google OAuth) | ⏳ Pending |
+| 23 | Implement Groups CRUD endpoints | ⏳ Pending |
+| 24 | Implement TeeTimePostings CRUD endpoints | ⏳ Pending |
+| 25 | Implement Reservations CRUD endpoints | ⏳ Pending |
+| 26 | Add JSON serializers for all models | ⏳ Pending |
+| 27 | Add error handling and validation responses | ⏳ Pending |
+| 28 | Write comprehensive API documentation | ⏳ Pending |
+
+### Phase 5: Polish & Deploy ⏳ PLANNED
+
+| Step | Task | Status |
+|------|------|--------|
+| 29 | Add password protection to Avo admin | ⏳ Pending |
+| 30 | Configure CORS for iOS app | ⏳ Pending |
+| 31 | Set up seed data for development | ⏳ Pending |
+| 32 | Final production deployment and testing | ⏳ Pending |
+| 33 | iOS app integration testing | ⏳ Pending |
+
+---
+
+**Overall Progress: Phase 2 of 5 (33% of Phase 2 complete)**
 
 ## Models
 
 ### User
-**Status:** ✅ Complete with 25 passing specs
+**Status:** ✅ Complete with 29 passing specs
 
 The User model supports both email/password and OAuth authentication.
 
@@ -161,11 +210,34 @@ The User model supports both email/password and OAuth authentication.
 **Key Methods:**
 - `oauth_user?` - Returns true if user signed in via OAuth
 - `User.from_oauth(...)` - Find or create user from OAuth data
+- `generate_jwt` - Generates a JWT token for API authentication
 
 **Validations:**
 - Email format and uniqueness
 - Password required (8+ chars) for non-OAuth users
 - Provider/uid required together for OAuth users
+
+### JWT Authentication
+**Status:** ✅ Complete with 11 passing specs
+
+The JsonWebToken service handles JWT encoding and decoding for API authentication.
+
+**Service:** `JsonWebToken` (located at `app/services/json_web_token.rb`)
+
+**Methods:**
+- `JsonWebToken.encode(payload, exp: nil)` - Encodes a payload into a JWT token
+  - `payload` (Hash): Data to encode in the token
+  - `exp` (Integer, optional): Expiration time (defaults to 24 hours from now)
+  - Returns: JWT token string
+- `JsonWebToken.decode(token)` - Decodes a JWT token
+  - `token` (String): JWT token to decode
+  - Returns: Hash with decoded payload or nil if invalid/expired
+
+**Features:**
+- HS256 algorithm using Rails secret_key_base
+- 24-hour token expiration by default
+- Graceful handling of expired and invalid tokens
+- Returns nil for any decode errors (expired, malformed, wrong signature)
 
 ## Development Approach
 

@@ -157,4 +157,33 @@ RSpec.describe User, type: :model do
       expect(user.authenticate('wrong_password')).to be false
     end
   end
+
+  describe '#generate_jwt' do
+    let(:user) { create(:user) }
+
+    it 'returns a JWT token string' do
+      token = user.generate_jwt
+      expect(token).to be_a(String)
+      expect(token.split('.').length).to eq(3)
+    end
+
+    it 'includes user_id in the token payload' do
+      token = user.generate_jwt
+      decoded = JsonWebToken.decode(token)
+      expect(decoded['user_id']).to eq(user.id)
+    end
+
+    it 'includes user email in the token payload' do
+      token = user.generate_jwt
+      decoded = JsonWebToken.decode(token)
+      expect(decoded['email']).to eq(user.email_address)
+    end
+
+    it 'token expires in 24 hours by default' do
+      token = user.generate_jwt
+      decoded = JsonWebToken.decode(token)
+      exp_time = Time.at(decoded['exp'])
+      expect(exp_time).to be_within(5.seconds).of(24.hours.from_now)
+    end
+  end
 end
