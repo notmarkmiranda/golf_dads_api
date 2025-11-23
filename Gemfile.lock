@@ -465,6 +465,7 @@ PLATFORMS
 
 DEPENDENCIES
   avo (~> 3.18)
+  bcrypt (~> 3.1.7)
   bootsnap
   brakeman
   bundler-audit
