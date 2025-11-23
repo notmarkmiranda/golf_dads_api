@@ -34,6 +34,27 @@ module Api
       end
     end
 
+    # POST /api/auth/google
+    def google
+      google_token = params[:token]
+      payload = GoogleTokenVerifier.verify(google_token)
+
+      unless payload
+        return render json: {
+          error: 'Invalid Google token'
+        }, status: :unauthorized
+      end
+
+      user_info = GoogleTokenVerifier.extract_user_info(payload)
+      user = User.from_oauth(**user_info)
+
+      token = user.generate_jwt
+      render json: {
+        token: token,
+        user: user_response(user)
+      }, status: :ok
+    end
+
     private
 
     def signup_params

@@ -168,4 +168,122 @@ RSpec.describe 'Api::Auth', type: :request do
       end
     end
   end
+
+  describe 'POST /api/auth/google' do
+    let(:valid_google_token) { 'valid_google_token_123' }
+    let(:invalid_google_token) { 'invalid_google_token' }
+
+    let(:google_payload) do
+      {
+        'sub' => 'google_user_123',
+        'email' => 'googleuser@example.com',
+        'name' => 'Google User',
+        'picture' => 'https://example.com/avatar.jpg',
+        'email_verified' => true
+      }
+    end
+
+    context 'with valid Google token' do
+      before do
+        allow(GoogleTokenVerifier).to receive(:verify).with(valid_google_token).and_return(google_payload)
+        allow(GoogleTokenVerifier).to receive(:extract_user_info).with(google_payload).and_return({
+          uid: 'google_user_123',
+          email: 'googleuser@example.com',
+          name: 'Google User',
+          avatar_url: 'https://example.com/avatar.jpg',
+          provider: 'google'
+        })
+      end
+
+      context 'when user does not exist' do
+        it 'creates a new user' do
+          expect {
+            post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          }.to change(User, :count).by(1)
+        end
+
+        it 'returns a JWT token' do
+          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['token']).to be_present
+          expect(json['token'].split('.').length).to eq(3)
+        end
+
+        it 'returns user data with OAuth provider' do
+          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          json = JSON.parse(response.body)
+          expect(json['user']['email']).to eq('googleuser@example.com')
+          expect(json['user']['name']).to eq('Google User')
+          expect(json['user']['provider']).to eq('google')
+          expect(json['user']['avatar_url']).to eq('https://example.com/avatar.jpg')
+        end
+
+        it 'does not set password_digest for OAuth user' do
+          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          user = User.last
+          expect(user.password_digest).to be_nil
+        end
+      end
+
+      context 'when user already exists' do
+        before do
+          User.create!(
+            provider: 'google',
+            uid: 'google_user_123',
+            email_address: 'googleuser@example.com',
+            name: 'Old Name'
+          )
+        end
+
+        it 'does not create a new user' do
+          expect {
+            post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          }.not_to change(User, :count)
+        end
+
+        it 'updates existing user information' do
+          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          user = User.find_by(provider: 'google', uid: 'google_user_123')
+          expect(user.name).to eq('Google User')
+          expect(user.avatar_url).to eq('https://example.com/avatar.jpg')
+        end
+
+        it 'returns a JWT token' do
+          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['token']).to be_present
+        end
+      end
+    end
+
+    context 'with invalid Google token' do
+      before do
+        allow(GoogleTokenVerifier).to receive(:verify).with(invalid_google_token).and_return(nil)
+      end
+
+      it 'returns error' do
+        post '/api/auth/google', params: { token: invalid_google_token }, as: :json
+        expect(response).to have_http_status(:unauthorized)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Invalid Google token')
+      end
+
+      it 'does not create a user' do
+        expect {
+          post '/api/auth/google', params: { token: invalid_google_token }, as: :json
+        }.not_to change(User, :count)
+      end
+    end
+
+    context 'with missing token' do
+      it 'returns error' do
+        post '/api/auth/google', params: {}, as: :json
+        expect(response).to have_http_status(:unauthorized)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Invalid Google token')
+      end
+    end
+  end
 end

@@ -16,8 +16,8 @@ This API serves as the backend for an iOS application that allows golfers to pos
 ### Authentication & Authorization
 - **Rails 8 Authentication** - Built-in `has_secure_password` with bcrypt
 - **JWT** - Token-based authentication for API (24-hour expiration)
+- **Google OAuth** - Server-side token verification for Google Sign-In
 - **Pundit** (installed) - Authorization policies
-- **Google OAuth** (planned) - OAuth2 authentication via Google Sign-In
 
 ### API & Serialization
 - **JSONAPI Serializer** - JSON API-compliant response formatting
@@ -97,12 +97,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (7/15 steps) - **47% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (8/15 steps) - **53% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 
-**Total Project Progress: 13/33 steps (39% complete)**
+**Total Project Progress: 14/33 steps (42% complete)**
 
 ---
 
@@ -114,9 +114,9 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - [x] Database configuration complete
 - [x] Deployed to Render successfully
 
-### Phase 2: Core Models with TDD 🚧 IN PROGRESS (47% complete - 7/15 steps)
+### Phase 2: Core Models with TDD 🚧 IN PROGRESS (53% complete - 8/15 steps)
 
-**Authentication Setup (7/8 steps complete)**
+**Authentication Setup (8/8 steps complete) ✅**
 
 | Step | Task | Status |
 |------|------|--------|
@@ -124,16 +124,16 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 2 | Customize User model for API (name, provider, uid, avatar_url) | ✅ Complete |
 | 3 | Write User model specs (29 passing tests) | ✅ Complete |
 | 4 | Add JWT token generation and validation (11 passing tests) | ✅ Complete |
-| 5 | Write request specs for authentication endpoints (18 passing tests) | ✅ Complete |
-| 6 | Create API authentication controller (signup, login) | ✅ Complete |
-| 7 | Add Google OAuth token verification | 🔄 Next |
-| 8 | Create Google sign-in endpoint with specs | ⏳ Pending |
+| 5 | Write request specs for authentication endpoints (28 passing tests) | ✅ Complete |
+| 6 | Create API authentication controller (signup, login, Google) | ✅ Complete |
+| 7 | Add Google OAuth token verification service (8 passing tests) | ✅ Complete |
+| 8 | Create Google sign-in endpoint with specs | ✅ Complete |
 
 **Core Models (0/4 steps complete)**
 
 | Step | Task | Status |
 |------|------|--------|
-| 9 | Generate Group model with TDD | ⏳ Pending |
+| 9 | Generate Group model with TDD | 🔄 Next |
 | 10 | Generate GroupMembership model with TDD | ⏳ Pending |
 | 11 | Generate TeeTimePosting model with TDD | ⏳ Pending |
 | 12 | Generate Reservation model with TDD | ⏳ Pending |
@@ -186,7 +186,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (47% of Phase 2 complete)**
+**Overall Progress: Phase 2 of 5 (53% of Phase 2 complete)**
 
 ## API Endpoints
 
@@ -273,6 +273,52 @@ Authenticates a user and returns a JWT token.
 - Returns JWT token valid for 24 hours
 - Token contains user_id and email in payload
 
+#### POST /api/auth/google
+**Status:** ✅ Complete with 10 passing specs
+
+Authenticates a user via Google Sign-In token and returns a JWT token.
+
+**Request:**
+```json
+{
+  "token": "google_id_token_from_ios_app"
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@gmail.com",
+    "name": "John Doe",
+    "avatar_url": "https://lh3.googleusercontent.com/...",
+    "provider": "google"
+  }
+}
+```
+
+**Error Response (401 Unauthorized):**
+```json
+{
+  "error": "Invalid Google token"
+}
+```
+
+**Features:**
+- Server-side Google ID token verification
+- Requires verified email from Google
+- Creates new user or updates existing OAuth user
+- No password required for OAuth users
+- Returns JWT token valid for 24 hours
+- Sets provider to 'google' and stores Google uid
+
+**Configuration:**
+- Set `GOOGLE_CLIENT_ID` environment variable for production
+- iOS app should use Google Sign-In SDK to obtain ID token
+- Send the ID token to this endpoint for verification
+
 ## Models
 
 ### User
@@ -323,6 +369,29 @@ The JsonWebToken service handles JWT encoding and decoding for API authenticatio
 - 24-hour token expiration by default
 - Graceful handling of expired and invalid tokens
 - Returns nil for any decode errors (expired, malformed, wrong signature)
+
+### Google OAuth Verification
+**Status:** ✅ Complete with 8 passing specs
+
+The GoogleTokenVerifier service handles server-side verification of Google Sign-In ID tokens.
+
+**Service:** `GoogleTokenVerifier` (located at `app/services/google_token_verifier.rb`)
+
+**Methods:**
+- `GoogleTokenVerifier.verify(token)` - Verifies a Google ID token
+  - `token` (String): Google ID token from iOS app
+  - Returns: Hash with token payload or nil if invalid/unverified
+  - Validates token signature, expiration, and email verification status
+- `GoogleTokenVerifier.extract_user_info(payload)` - Extracts user info from verified payload
+  - `payload` (Hash): Verified Google token payload
+  - Returns: Hash with uid, email, name, avatar_url, and provider
+
+**Features:**
+- Uses google-id-token gem for verification
+- Validates email is verified by Google
+- Requires GOOGLE_CLIENT_ID environment variable
+- Graceful error handling returns nil for any verification failures
+- Extracts user profile data (email, name, picture) from token
 
 ## Development Approach
 

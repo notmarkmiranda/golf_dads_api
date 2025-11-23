@@ -152,6 +152,8 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    google-id-token (1.4.2)
+      jwt (>= 1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -443,6 +445,7 @@ DEPENDENCIES
   debug
   factory_bot_rails (~> 6.4)
   faker (~> 3.5)
+  google-id-token (~> 1.4)
   image_processing (~> 1.2)
   jsonapi-serializer (~> 2.2)
   jwt (~> 2.9)
