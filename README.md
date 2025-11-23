@@ -14,9 +14,10 @@ This API serves as the backend for an iOS application that allows golfers to pos
 - **PostgreSQL** - Primary database
 
 ### Authentication & Authorization
-- **Devise** - User authentication
-- **Devise-JWT** - JWT token-based authentication for API
-- **Pundit** - Authorization policies
+- **Rails 8 Authentication** - Built-in `has_secure_password` with bcrypt
+- **JWT** (planned) - Token-based authentication for API
+- **Pundit** (installed) - Authorization policies
+- **Google OAuth** (planned) - OAuth2 authentication via Google Sign-In
 
 ### API & Serialization
 - **JSONAPI Serializer** - JSON API-compliant response formatting
@@ -92,31 +93,79 @@ http://localhost:3000/avo
 
 ## Project Status
 
-### Phase 1: Foundation ✅
+### Phase 1: Foundation ✅ COMPLETE
 - [x] Rails 8.1.1 API setup with PostgreSQL
 - [x] RSpec testing framework configured
-- [x] Core gems installed (Devise, JWT, Pundit, CORS)
-- [x] Admin panel (Avo) installed
+- [x] Core gems installed (JWT, Pundit, CORS, Propshaft)
+- [x] Admin panel (Avo) installed and configured
 - [x] Database configuration complete
+- [x] Deployed to Render successfully
 
-### Phase 2: Core Models (Coming Next)
-- [ ] User model with authentication
-- [ ] Group model for golf groups
-- [ ] GroupMembership for user-group associations
-- [ ] TeeTimePosting for available tee times
-- [ ] Reservation for claiming spots
-- [ ] Course model (optional)
+### Phase 2: Core Models with TDD 🚧 IN PROGRESS (21% complete)
 
-### Phase 3: Authentication & Authorization (Planned)
-- [ ] JWT authentication endpoints
-- [ ] User registration/login/logout
-- [ ] Pundit policies
+**Authentication Setup (3/8 complete)**
+- [x] Generate Rails 8 authentication scaffolding
+- [x] Customize User model for API
+  - Email/password authentication
+  - OAuth fields (provider, uid, avatar_url)
+  - Password optional for OAuth users
+- [x] Write User model specs - **25 passing tests** ✅
+- [x] Create Avo resource for User with admin interface
+- [ ] Add JWT token generation and validation
+- [ ] Create API authentication controller (signup, login)
+- [ ] Write request specs for authentication endpoints
+- [ ] Add Google OAuth token verification
+- [ ] Create Google sign-in endpoint with specs
 
-### Phase 4: API Endpoints (Planned)
-- [ ] Auth endpoints
+**Core Models (0/4 complete)**
+- [ ] Group model with TDD
+- [ ] GroupMembership model with TDD
+- [ ] TeeTimePosting model with TDD
+- [ ] Reservation model with TDD
+
+**Admin & Documentation (1/3 complete)**
+- [x] User Avo resource ✅
+- [ ] Avo resources for other models
+- [ ] Password protect Avo admin
+- [ ] Documentation updates (ongoing)
+
+### Phase 3: Authorization (PLANNED)
+- [ ] Pundit policies for User, Group, TeeTimePosting
+- [ ] Authorization specs
+
+### Phase 4: API Endpoints (PLANNED)
+- [ ] Auth endpoints (signup, login, Google OAuth)
 - [ ] Groups CRUD
-- [ ] Tee time postings
-- [ ] Reservations
+- [ ] Tee time postings CRUD
+- [ ] Reservations CRUD
+
+## Models
+
+### User
+**Status:** ✅ Complete with 25 passing specs
+
+The User model supports both email/password and OAuth authentication.
+
+**Attributes:**
+- `email_address` (string, required, unique) - User's email
+- `password_digest` (string, optional) - Encrypted password (only for email/password users)
+- `name` (string, required) - User's display name
+- `provider` (string, optional) - OAuth provider (e.g., "google")
+- `uid` (string, optional) - OAuth provider's user ID
+- `avatar_url` (string, optional) - URL to user's avatar image
+- `created_at`, `updated_at` (datetime) - Timestamps
+
+**Associations:**
+- `has_many :sessions` - User login sessions
+
+**Key Methods:**
+- `oauth_user?` - Returns true if user signed in via OAuth
+- `User.from_oauth(...)` - Find or create user from OAuth data
+
+**Validations:**
+- Email format and uniqueness
+- Password required (8+ chars) for non-OAuth users
+- Provider/uid required together for OAuth users
 
 ## Development Approach
 
