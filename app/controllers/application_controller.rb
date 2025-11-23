@@ -1,3 +1,4 @@
 class ApplicationController < ActionController::API
-  include Authentication
+  # API-only base controller - no sessions, cookies, or view helpers
+  # For session-based authentication (Avo, etc), use WebController instead
 end
