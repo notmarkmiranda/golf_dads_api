@@ -97,12 +97,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (5/15 steps) - **33% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (7/15 steps) - **47% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 
-**Total Project Progress: 11/33 steps (33% complete)**
+**Total Project Progress: 13/33 steps (39% complete)**
 
 ---
 
@@ -114,9 +114,9 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - [x] Database configuration complete
 - [x] Deployed to Render successfully
 
-### Phase 2: Core Models with TDD 🚧 IN PROGRESS (33% complete - 5/15 steps)
+### Phase 2: Core Models with TDD 🚧 IN PROGRESS (47% complete - 7/15 steps)
 
-**Authentication Setup (5/8 steps complete)**
+**Authentication Setup (7/8 steps complete)**
 
 | Step | Task | Status |
 |------|------|--------|
@@ -124,9 +124,9 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 2 | Customize User model for API (name, provider, uid, avatar_url) | ✅ Complete |
 | 3 | Write User model specs (29 passing tests) | ✅ Complete |
 | 4 | Add JWT token generation and validation (11 passing tests) | ✅ Complete |
-| 5 | Create API authentication controller (signup, login) | 🔄 Next |
-| 6 | Write request specs for authentication endpoints | ⏳ Pending |
-| 7 | Add Google OAuth token verification | ⏳ Pending |
+| 5 | Write request specs for authentication endpoints (18 passing tests) | ✅ Complete |
+| 6 | Create API authentication controller (signup, login) | ✅ Complete |
+| 7 | Add Google OAuth token verification | 🔄 Next |
 | 8 | Create Google sign-in endpoint with specs | ⏳ Pending |
 
 **Core Models (0/4 steps complete)**
@@ -186,7 +186,92 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (33% of Phase 2 complete)**
+**Overall Progress: Phase 2 of 5 (47% of Phase 2 complete)**
+
+## API Endpoints
+
+### Authentication
+
+#### POST /api/auth/signup
+**Status:** ✅ Complete with 9 passing specs
+
+Creates a new user account and returns a JWT token.
+
+**Request:**
+```json
+{
+  "user": {
+    "email": "user@example.com",
+    "password": "password123",
+    "password_confirmation": "password123",
+    "name": "John Doe"
+  }
+}
+```
+
+**Successful Response (201 Created):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe",
+    "avatar_url": null,
+    "provider": null
+  }
+}
+```
+
+**Error Response (422 Unprocessable Entity):**
+```json
+{
+  "errors": {
+    "email_address": ["has already been taken"],
+    "password": ["is too short (minimum is 8 characters)"]
+  }
+}
+```
+
+#### POST /api/auth/login
+**Status:** ✅ Complete with 9 passing specs
+
+Authenticates a user and returns a JWT token.
+
+**Request:**
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe",
+    "avatar_url": null,
+    "provider": null
+  }
+}
+```
+
+**Error Response (401 Unauthorized):**
+```json
+{
+  "error": "Invalid email or password"
+}
+```
+
+**Features:**
+- Case-insensitive email lookup
+- Password validation using bcrypt
+- Returns JWT token valid for 24 hours
+- Token contains user_id and email in payload
 
 ## Models
 
