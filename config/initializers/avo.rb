@@ -7,6 +7,7 @@ Avo.configure do |config|
   # config.prefix_path = "/internal"
 
   # Where should the user be redirected when visiting the `/avo` url
+  # Leave nil to show default Avo page until resources are added
   # config.home_path = nil
 
   ## == Licensing ==
@@ -158,4 +159,11 @@ Avo.configure do |config|
   # config.profile_menu = -> {
   #   link "Profile", path: "/avo/profile", icon: "heroicons/outline/user-circle"
   # }
+
+  # Configure main menu - will be populated once resources are added in Phase 2
+  # config.main_menu = -> do
+  #   section "Resources", icon: "heroicons/outline/database" do
+  #     all_resources
+  #   end
+  # end
 end
