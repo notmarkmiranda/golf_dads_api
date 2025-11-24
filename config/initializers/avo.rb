@@ -19,7 +19,6 @@ Avo.configure do |config|
   end
 
   ## == Authentication ==
-  config.current_user_method = :current_user
   config.authenticate_with do
     # Use HTTP Basic Auth for Avo admin access
     # In production, set AVO_USERNAME and AVO_PASSWORD environment variables
