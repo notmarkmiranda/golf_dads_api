@@ -19,12 +19,15 @@ Avo.configure do |config|
   end
 
   ## == Authentication ==
-  # config.current_user_method = :current_user
-  # config.authenticate_with do
-  # end
-
-  ## == Authorization ==
-  # config.is_admin_method = :is_admin
+  config.current_user_method = :current_user
+  config.authenticate_with do
+    # Use HTTP Basic Auth for Avo admin access
+    # In production, set AVO_USERNAME and AVO_PASSWORD environment variables
+    authenticate_or_request_with_http_basic('Avo Admin') do |username, password|
+      username == (ENV['AVO_USERNAME'] || 'admin') &&
+      password == (ENV['AVO_PASSWORD'] || 'changeme')
+    end
+  end
   # config.is_developer_method = :is_developer
   # config.authorization_methods = {
   #   index: 'index?',

@@ -86,9 +86,32 @@ rails server
 
 ### Admin Dashboard
 
-Once configured, Avo admin dashboard will be available at:
+The Avo admin dashboard is protected with HTTP Basic Authentication:
 ```
 http://localhost:3000/avo
+```
+
+**Default Credentials (Development):**
+- Username: `admin`
+- Password: `changeme`
+
+**Production Setup:**
+Set environment variables:
+```bash
+export AVO_USERNAME=your_admin_username
+export AVO_PASSWORD=your_secure_password
+```
+
+**Managing Admin Users:**
+```bash
+# Promote a user to admin (for future session-based Avo auth)
+rails admin:promote[user@example.com]
+
+# Remove admin privileges
+rails admin:demote[user@example.com]
+
+# List all admin users
+rails admin:list
 ```
 
 ## Execution Plan
@@ -97,13 +120,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (13/15 steps) - **87% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (14/15 steps) - **93% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 19/40 steps (48% complete)**
+**Total Project Progress: 20/40 steps (50% complete)**
 
 ---
 
@@ -139,18 +162,18 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 11 | Generate TeeTimePosting model with TDD (25 passing specs) | ✅ Complete |
 | 12 | Generate Reservation model with TDD (17 passing specs) | ✅ Complete |
 
-**Admin & Documentation (2/3 steps complete)**
+**Admin & Documentation (3/3 steps complete) ✅**
 
 | Step | Task | Status |
 |------|------|--------|
 | 13 | Create Avo resources for all models | ✅ Complete |
-| 14 | Add password protection to Avo admin | ⏳ Pending |
+| 14 | Add password protection to Avo admin (HTTP Basic Auth) | ✅ Complete |
 | 15 | Update documentation after each step | ✅ Ongoing |
 
 **Notes:**
 - All Avo resources have been created with comprehensive field definitions and associations
+- Avo admin is protected with HTTP Basic Authentication (Step 14 complete)
 - Documentation is updated after each major milestone
-- Password protection for Avo will be added after core models are complete (Step 14)
 
 ### Phase 3: Authorization ⏳ PLANNED
 
@@ -215,7 +238,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (87% of Phase 2 complete)**
+**Overall Progress: Phase 2 of 5 (93% of Phase 2 complete)**
 
 ## API Endpoints
 
@@ -351,7 +374,7 @@ Authenticates a user via Google Sign-In token and returns a JWT token.
 ## Models
 
 ### User
-**Status:** ✅ Complete with 29 passing specs
+**Status:** ✅ Complete with 32 passing specs
 
 The User model supports both email/password and OAuth authentication.
 
@@ -362,6 +385,7 @@ The User model supports both email/password and OAuth authentication.
 - `provider` (string, optional) - OAuth provider (e.g., "google")
 - `uid` (string, optional) - OAuth provider's user ID
 - `avatar_url` (string, optional) - URL to user's avatar image
+- `admin` (boolean, default: false) - Admin flag for Avo dashboard access
 - `created_at`, `updated_at` (datetime) - Timestamps
 
 **Associations:**
@@ -564,7 +588,7 @@ The Reservation model allows users to reserve available spots on tee time postin
 
 ## Avo Admin Resources
 
-All models have comprehensive Avo admin resources for data management. The admin dashboard is available at `/avo` (password protection pending).
+All models have comprehensive Avo admin resources for data management. The admin dashboard is available at `/avo` and protected with HTTP Basic Authentication.
 
 ### User Resource
 **Features:**

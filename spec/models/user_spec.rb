@@ -51,6 +51,26 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe 'admin functionality' do
+    it 'defaults admin to false' do
+      user = create(:user)
+      expect(user.admin).to be false
+    end
+
+    it 'can be set as admin' do
+      user = create(:user, admin: true)
+      expect(user.admin).to be true
+    end
+
+    it 'admin? returns correct value' do
+      regular_user = create(:user, admin: false)
+      admin_user = create(:user, admin: true, email_address: 'admin@example.com')
+
+      expect(regular_user.admin?).to be false
+      expect(admin_user.admin?).to be true
+    end
+  end
+
   describe '#oauth_user?' do
     it 'returns true when provider is present' do
       user = build(:user, :oauth_user)
