@@ -86,25 +86,26 @@ rails server
 
 ### Admin Dashboard
 
-The Avo admin dashboard is protected with HTTP Basic Authentication:
+The Avo admin dashboard is protected with session-based authentication:
 ```
 http://localhost:3000/avo
 ```
 
-**Default Credentials (Development):**
-- Username: `admin`
-- Password: `changeme`
+**Access Requirements:**
+1. User must be logged in (have an active session)
+2. User must have `admin: true` in their User record
 
-**Production Setup:**
-Set environment variables:
-```bash
-export AVO_USERNAME=your_admin_username
-export AVO_PASSWORD=your_secure_password
-```
+**Default Admin User (from seeds):**
+- Email: `notmarkmiranda@gail.com`
+- Password: `password1234`
+
+**Accessing Avo:**
+1. First log in at `/sessions/new` with your admin credentials
+2. Then navigate to `/avo`
 
 **Managing Admin Users:**
 ```bash
-# Promote a user to admin (for future session-based Avo auth)
+# Promote a user to admin
 rails admin:promote[user@example.com]
 
 # Remove admin privileges
@@ -167,12 +168,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | Step | Task | Status |
 |------|------|--------|
 | 13 | Create Avo resources for all models | ✅ Complete |
-| 14 | Add password protection to Avo admin (HTTP Basic Auth) | ✅ Complete |
+| 14 | Add password protection to Avo admin (Session-based) | ✅ Complete |
 | 15 | Update documentation after each step | ✅ Ongoing |
 
 **Notes:**
 - All Avo resources have been created with comprehensive field definitions and associations
-- Avo admin is protected with HTTP Basic Authentication (Step 14 complete)
+- Avo admin is protected with session-based authentication requiring admin flag (Step 14 complete)
 - Documentation is updated after each major milestone
 
 ### Phase 3: Authorization ⏳ PLANNED
@@ -588,7 +589,7 @@ The Reservation model allows users to reserve available spots on tee time postin
 
 ## Avo Admin Resources
 
-All models have comprehensive Avo admin resources for data management. The admin dashboard is available at `/avo` and protected with HTTP Basic Authentication.
+All models have comprehensive Avo admin resources for data management. The admin dashboard is available at `/avo` and protected with session-based authentication. Only users with `admin: true` can access Avo.
 
 ### User Resource
 **Features:**

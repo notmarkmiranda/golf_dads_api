@@ -19,12 +19,17 @@ Avo.configure do |config|
   end
 
   ## == Authentication ==
+  config.current_user_method = :current_user
   config.authenticate_with do
-    # Use HTTP Basic Auth for Avo admin access
-    # In production, set AVO_USERNAME and AVO_PASSWORD environment variables
-    authenticate_or_request_with_http_basic('Avo Admin') do |username, password|
-      username == (ENV['AVO_USERNAME'] || 'admin') &&
-      password == (ENV['AVO_PASSWORD'] || 'changeme')
+    # Redirect to login if not authenticated
+    unless current_user
+      redirect_to new_session_path, alert: "Please sign in to access the admin dashboard."
+      return
+    end
+
+    # Only allow users with admin flag to access Avo
+    unless current_user.admin?
+      redirect_to root_path, alert: "Access denied. Admin privileges required."
     end
   end
   # config.is_developer_method = :is_developer
@@ -117,7 +122,7 @@ Avo.configure do |config|
   # config.disabled_features = []
   # config.buttons_on_form_footers = true
   # config.field_wrapper_layout = true
-  # config.resource_parent_controller = "Avo::ResourcesController"
+  config.resource_parent_controller = "Avo::ApplicationController"
   # config.first_sorting_option = :desc # :desc or :asc
   # config.exclude_from_status = []
   # config.model_generator_hook = true
