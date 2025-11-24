@@ -126,10 +126,10 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
 - ✅ **Phase 4:** API Endpoints (8/8 steps) - **100% Complete**
-- 🚧 **Phase 5:** Polish & Deploy (1/5 steps) - **20% Complete** ← Current Phase
+- 🚧 **Phase 5:** Polish & Deploy (2/5 steps) - **40% Complete** ← Current Phase
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 34/40 steps (85% complete)**
+**Total Project Progress: 35/40 steps (88% complete)**
 
 ---
 
@@ -209,13 +209,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 27 | Add error handling and validation responses | ✅ Complete |
 | 28 | Write comprehensive API documentation | ✅ Complete |
 
-### Phase 5: Polish & Deploy 🚧 IN PROGRESS (20% complete - 1/5 steps)
+### Phase 5: Polish & Deploy 🚧 IN PROGRESS (40% complete - 2/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
 | 29 | Add password protection to Avo admin | ✅ Complete (HTTP Basic Auth with User validation) |
-| 30 | Configure CORS for iOS app | 🔄 Next |
-| 31 | Set up seed data for development | ⏳ Pending |
+| 30 | Configure CORS for iOS app | ✅ Complete |
+| 31 | Set up seed data for development | 🔄 Next |
 | 32 | Final production deployment and testing | ⏳ Pending |
 | 33 | iOS app integration testing | ⏳ Pending |
 
@@ -306,6 +306,82 @@ class Api::GroupsController < Api::BaseController
     # ...
   end
 end
+```
+
+## CORS Configuration
+
+**Status:** ✅ Complete
+
+The API is configured with Cross-Origin Resource Sharing (CORS) to allow requests from the iOS application.
+
+### Configuration
+
+Located in `config/initializers/cors.rb`, the CORS middleware is configured to:
+- Accept requests from any origin (`origins '*'`)
+- Allow all HTTP methods (GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD)
+- Accept any request headers
+- Expose the Authorization header in responses
+- Disable credentials (since iOS native apps don't send cookies)
+
+```ruby
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins '*'
+
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      expose: ['Authorization'],
+      credentials: false
+  end
+end
+```
+
+### Why This Configuration?
+
+**For iOS Apps:**
+- Native iOS apps using URLSession don't send an Origin header
+- Using `origins '*'` allows these requests
+- No credentials needed since authentication uses JWT tokens in headers
+
+**Security:**
+- JWT tokens in Authorization header provide security
+- No cookies or credentials are used
+- Each request must include a valid JWT token
+- CORS allows the preflight OPTIONS requests needed for custom headers
+
+### iOS App Integration
+
+When making requests from the iOS app:
+
+1. **Include the JWT token in the Authorization header:**
+```swift
+var request = URLRequest(url: url)
+request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+```
+
+2. **Set the Content-Type header for POST/PATCH requests:**
+```swift
+request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+```
+
+3. **No special CORS handling needed** - the server handles it automatically
+
+### Production Considerations
+
+The current configuration (`origins '*'`) works for both development and production since:
+- iOS apps don't have an origin domain
+- Authentication is handled via JWT tokens, not cookies
+- No sensitive data is exposed without authentication
+
+If you need to restrict to specific web domains in the future, update the `origins` setting:
+```ruby
+origins ENV['ALLOWED_ORIGINS']&.split(',') || '*'
+```
+
+Then set the `ALLOWED_ORIGINS` environment variable:
+```bash
+ALLOWED_ORIGINS=https://example.com,https://www.example.com
 ```
 
 ## Error Handling
