@@ -123,13 +123,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (14/15 steps) - **93% Complete** ← Current Phase
-- ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
+- ✅ **Phase 2:** Core Models with TDD (14/15 steps) - **93% Complete**
+- 🚧 **Phase 3:** Authorization (1/5 steps) - **20% Complete** ← Current Phase
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 20/40 steps (50% complete)**
+**Total Project Progress: 21/40 steps (53% complete)**
 
 ---
 
@@ -178,15 +178,22 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - Avo admin is protected with HTTP Basic Auth that validates User credentials and admin flag (Step 14 complete)
 - Documentation is updated after each major milestone
 
-### Phase 3: Authorization ⏳ PLANNED
+### Phase 3: Authorization 🚧 IN PROGRESS (20% complete - 1/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
-| 16 | Create Pundit policies for User resource | ⏳ Pending |
-| 17 | Create Pundit policies for Group resource | ⏳ Pending |
-| 18 | Create Pundit policies for TeeTimePosting resource | ⏳ Pending |
-| 19 | Write authorization specs for all policies | ⏳ Pending |
-| 20 | Integrate Pundit with API controllers | ⏳ Pending |
+| 16 | Create Pundit policies for User resource (16 passing specs) + document | ✅ Complete |
+| 17 | Create Pundit policies for Group resource + document | 🔄 Next |
+| 18 | Create Pundit policies for TeeTimePosting & Reservation resources + document | ⏳ Pending |
+| 19 | Write authorization specs for all policies | ✅ Ongoing |
+| 20 | Integrate Pundit with API controllers + document | ⏳ Pending |
+
+**Notes:**
+- Pundit base policy installed and configured
+- pundit-matchers gem added for testing
+- Authorization specs written alongside each policy (TDD approach)
+- Step 19 is ongoing as we write specs with each policy
+- **IMPORTANT**: Update README documentation after completing each step
 
 ### Phase 4: API Endpoints ⏳ PLANNED
 
@@ -241,7 +248,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (93% of Phase 2 complete)**
+**Overall Progress: Phase 3 of 5 (20% of Phase 3 complete)**
 
 ## API Endpoints
 
@@ -588,6 +595,24 @@ The Reservation model allows users to reserve available spots on tee time postin
 - Cannot reserve more spots than are available
 - Different users can reserve spots on the same posting
 - Same user can reserve spots on different postings
+
+## Authorization Policies
+
+Authorization is handled by Pundit policies that control who can perform actions on resources.
+
+### UserPolicy
+**Status:** ✅ Complete with 16 passing specs
+
+**Rules:**
+- **index**: Authenticated users can list users
+- **show**: Authenticated users can view any user profile
+- **create**: Anyone can create a user (signup - no authentication required)
+- **update**: Users can update their own profile; admins can update any profile
+- **destroy**: Users can delete their own account; admins can delete any account
+
+**Scope:**
+- Authenticated users can see all users
+- Guests see empty scope
 
 ## Avo Admin Resources
 

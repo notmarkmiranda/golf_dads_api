@@ -82,3 +82,6 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
+
+# Pundit Matchers configuration
+require 'pundit/matchers'
