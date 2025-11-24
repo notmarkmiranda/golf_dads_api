@@ -97,7 +97,7 @@ http://localhost:3000/avo
 - Login with User email and password
 
 **Default Admin User (from seeds):**
-- Email: `notmarkmiranda@gail.com`
+- Email: `notmarkmiranda@gmail.com`
 - Password: `password1234`
 
 **Accessing Avo:**
