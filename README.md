@@ -285,11 +285,20 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - Course photos and description
 - Associated with tee time postings
 
-**API Options to Consider:**
-- Golf Genius - Comprehensive course data and tee sheet management
-- USGA Course Rating Database - Official ratings and slope
-- GolfNow API - Course info with tee time availability
-- Custom data entry - Manual course creation through admin panel
+**Recommended API: GolfCourseAPI.com** ⭐
+- **FREE** - No cost, only email signup required
+- **Coverage:** ~30,000 golf courses worldwide
+- **Data:** Course names, locations, stats (par, rating, yardage)
+- **Easy Integration:** Simple REST API with good documentation
+- **Website:** https://golfcourseapi.com
+
+**Alternative Options:**
+- **Golf Courses Data API (Zyla API Hub)** - 30,000+ courses, free trial then paid
+- **Golf API (golfapi.io)** - 42,000+ courses with USGA ratings, commercial pricing
+- **USGA NCRDB** - Official course ratings but no public API (web lookup only)
+- **Golf Genius API** - Enterprise solution, requires sales contact (~$2,500+/year)
+- **GolfNow API** - Booking integration, requires partnership approval
+- **Custom data entry** - Manual course creation through admin panel
 
 ---
 
