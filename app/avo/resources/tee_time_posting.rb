@@ -1,0 +1,21 @@
+class Avo::Resources::TeeTimePosting < Avo::BaseResource
+  self.title = :course_name
+  self.includes = [:user, :group]
+
+  self.search = {
+    query: -> { query.where("course_name ILIKE ? OR notes ILIKE ?", "%#{q}%", "%#{q}%") }
+  }
+
+  def fields
+    field :id, as: :id, link_to_record: true
+    field :user, as: :belongs_to, required: true, searchable: true
+    field :group, as: :belongs_to, searchable: true
+    field :tee_time, as: :date_time, required: true
+    field :course_name, as: :text, required: true
+    field :available_spots, as: :number, required: true, min: 1
+    field :total_spots, as: :number, min: 1
+    field :notes, as: :textarea, hide_on: [:index]
+    field :created_at, as: :date_time, readonly: true
+    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
+  end
+end

@@ -14,5 +14,6 @@ class Avo::Resources::Group < Avo::BaseResource
     field :created_at, as: :date_time, readonly: true
     field :group_memberships, as: :has_many
     field :members, as: :has_many, through: :group_memberships
+    field :tee_time_postings, as: :has_many
   end
 end

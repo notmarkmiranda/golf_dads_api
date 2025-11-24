@@ -19,5 +19,6 @@ class Avo::Resources::User < Avo::BaseResource
     field :password_confirmation, as: :password, name: "Password Confirmation", only_on: [:new, :edit]
     field :created_at, as: :date_time, readonly: true
     field :sessions, as: :has_many
+    field :tee_time_postings, as: :has_many
   end
 end

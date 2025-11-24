@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_24_001134) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_24_002303) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -43,6 +43,23 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_001134) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "tee_time_postings", force: :cascade do |t|
+    t.integer "available_spots", null: false
+    t.string "course_name", null: false
+    t.datetime "created_at", null: false
+    t.bigint "group_id"
+    t.text "notes"
+    t.datetime "tee_time", null: false
+    t.integer "total_spots"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["group_id", "tee_time"], name: "index_tee_time_postings_on_group_id_and_tee_time"
+    t.index ["group_id"], name: "index_tee_time_postings_on_group_id"
+    t.index ["tee_time"], name: "index_tee_time_postings_on_tee_time"
+    t.index ["user_id", "tee_time"], name: "index_tee_time_postings_on_user_id_and_tee_time"
+    t.index ["user_id"], name: "index_tee_time_postings_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "avatar_url"
     t.datetime "created_at", null: false
@@ -60,4 +77,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_001134) do
   add_foreign_key "group_memberships", "users"
   add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "sessions", "users"
+  add_foreign_key "tee_time_postings", "groups"
+  add_foreign_key "tee_time_postings", "users"
 end

@@ -97,13 +97,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (10/15 steps) - **67% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (11/15 steps) - **73% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 16/40 steps (40% complete)**
+**Total Project Progress: 17/40 steps (43% complete)**
 
 ---
 
@@ -115,7 +115,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - [x] Database configuration complete
 - [x] Deployed to Render successfully
 
-### Phase 2: Core Models with TDD 🚧 IN PROGRESS (53% complete - 8/15 steps)
+### Phase 2: Core Models with TDD 🚧 IN PROGRESS (73% complete - 11/15 steps)
 
 **Authentication Setup (8/8 steps complete) ✅**
 
@@ -130,14 +130,14 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 7 | Add Google OAuth token verification service (8 passing tests) | ✅ Complete |
 | 8 | Create Google sign-in endpoint with specs | ✅ Complete |
 
-**Core Models (2/4 steps complete)**
+**Core Models (3/4 steps complete)**
 
 | Step | Task | Status |
 |------|------|--------|
 | 9 | Generate Group model with TDD (13 passing specs) | ✅ Complete |
 | 10 | Generate GroupMembership model with TDD (12 passing specs) | ✅ Complete |
-| 11 | Generate TeeTimePosting model with TDD | 🔄 Next |
-| 12 | Generate Reservation model with TDD | ⏳ Pending |
+| 11 | Generate TeeTimePosting model with TDD (25 passing specs) | ✅ Complete |
+| 12 | Generate Reservation model with TDD | 🔄 Next |
 
 **Admin & Documentation (3/3 steps complete)**
 
@@ -473,6 +473,54 @@ The GroupMembership model is a join table connecting Users to Groups as members.
 **Cascading Deletes:**
 - Destroyed when user is destroyed
 - Destroyed when group is destroyed
+
+### TeeTimePosting
+**Status:** ✅ Complete with 25 passing specs
+
+The TeeTimePosting model represents an available tee time spot that users can share with their groups or the public.
+
+**Attributes:**
+- `user_id` (bigint, required) - User who created the posting
+- `group_id` (bigint, optional) - Group to share with (nil for public postings)
+- `tee_time` (datetime, required) - Date and time of the tee time
+- `course_name` (string, required) - Name of the golf course
+- `available_spots` (integer, required) - Number of spots available
+- `total_spots` (integer, optional) - Total number of spots in the tee time
+- `notes` (text, optional) - Additional information or requirements
+- `created_at`, `updated_at` (datetime) - Timestamps
+
+**Associations:**
+- `belongs_to :user` - Creator of the posting
+- `belongs_to :group` (optional) - Group the posting is shared with
+
+**Validations:**
+- User, tee_time, course_name, available_spots presence
+- Available_spots must be greater than 0
+- Total_spots must be greater than 0 (if provided)
+- Tee time must be in the future (only on create)
+- Available_spots must not exceed total_spots
+
+**Scopes:**
+- `upcoming` - Returns postings with future tee times
+- `public_postings` - Returns postings without a group (group_id is nil)
+- `for_group(group)` - Returns postings for a specific group
+
+**Instance Methods:**
+- `public?` - Returns true if posting has no group (public posting)
+- `past?` - Returns true if tee time is in the past
+
+**Database Indexes:**
+- Index on `tee_time` for time-based queries
+- Composite index on `[user_id, tee_time]` for user's postings
+- Composite index on `[group_id, tee_time]` for group's postings
+- Foreign key constraints to users and groups tables
+
+**Business Logic:**
+- Public postings (group_id = nil) are visible to all users
+- Group postings are only visible to group members
+- Past tee times can be updated without validation errors
+- Postings are destroyed when user is destroyed
+- Postings are destroyed when group is destroyed
 
 ## Development Approach
 
