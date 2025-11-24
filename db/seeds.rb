@@ -116,7 +116,7 @@ postings = []
 # Public postings (visible to everyone)
 postings << TeeTimePosting.create!(
   user: users[0],
-  tee_time: 2.days.from_now.change(hour: 8, min: 0),
+  tee_time: 2.weeks.from_now.change(hour: 8, min: 0),
   course_name: 'Pebble Beach Golf Links',
   available_spots: 2,
   total_spots: 4,
@@ -125,7 +125,7 @@ postings << TeeTimePosting.create!(
 
 postings << TeeTimePosting.create!(
   user: users[1],
-  tee_time: 3.days.from_now.change(hour: 10, min: 30),
+  tee_time: 3.weeks.from_now.change(hour: 10, min: 30),
   course_name: 'Augusta National Golf Club',
   available_spots: 1,
   total_spots: 4,
@@ -134,7 +134,7 @@ postings << TeeTimePosting.create!(
 
 postings << TeeTimePosting.create!(
   user: users[2],
-  tee_time: 5.days.from_now.change(hour: 14, min: 0),
+  tee_time: 1.month.from_now.change(hour: 14, min: 0),
   course_name: 'St Andrews Links',
   available_spots: 3,
   total_spots: 4,
@@ -145,7 +145,7 @@ postings << TeeTimePosting.create!(
 postings << TeeTimePosting.create!(
   user: users[0],
   group: weekend_warriors,
-  tee_time: 7.days.from_now.change(hour: 7, min: 0),
+  tee_time: 10.days.from_now.change(hour: 7, min: 0),
   course_name: 'Torrey Pines Golf Course',
   available_spots: 2,
   total_spots: 4,
@@ -155,7 +155,7 @@ postings << TeeTimePosting.create!(
 postings << TeeTimePosting.create!(
   user: users[1],
   group: ladies_league,
-  tee_time: 4.days.from_now.change(hour: 9, min: 0),
+  tee_time: 2.weeks.from_now.change(hour: 9, min: 0),
   course_name: 'Pinehurst Resort',
   available_spots: 1,
   total_spots: 4,
@@ -165,7 +165,7 @@ postings << TeeTimePosting.create!(
 postings << TeeTimePosting.create!(
   user: users[2],
   group: corporate_crew,
-  tee_time: 6.days.from_now.change(hour: 17, min: 0),
+  tee_time: 3.weeks.from_now.change(hour: 17, min: 0),
   course_name: 'Bethpage Black Course',
   available_spots: 2,
   total_spots: 4,
