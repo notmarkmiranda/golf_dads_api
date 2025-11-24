@@ -97,12 +97,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (9/15 steps) - **60% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (10/15 steps) - **67% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 
-**Total Project Progress: 15/33 steps (45% complete)**
+**Total Project Progress: 16/33 steps (48% complete)**
 
 ---
 
@@ -129,13 +129,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 7 | Add Google OAuth token verification service (8 passing tests) | ✅ Complete |
 | 8 | Create Google sign-in endpoint with specs | ✅ Complete |
 
-**Core Models (1/4 steps complete)**
+**Core Models (2/4 steps complete)**
 
 | Step | Task | Status |
 |------|------|--------|
-| 9 | Generate Group model with TDD (8 passing specs) | ✅ Complete |
-| 10 | Generate GroupMembership model with TDD | 🔄 Next |
-| 11 | Generate TeeTimePosting model with TDD | ⏳ Pending |
+| 9 | Generate Group model with TDD (13 passing specs) | ✅ Complete |
+| 10 | Generate GroupMembership model with TDD (12 passing specs) | ✅ Complete |
+| 11 | Generate TeeTimePosting model with TDD | 🔄 Next |
 | 12 | Generate Reservation model with TDD | ⏳ Pending |
 
 **Admin & Documentation (3/3 steps complete)**
@@ -186,7 +186,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (60% of Phase 2 complete)**
+**Overall Progress: Phase 2 of 5 (67% of Phase 2 complete)**
 
 ## API Endpoints
 
@@ -417,6 +417,33 @@ The Group model represents a collection of golfers who share tee time postings.
 **Database Indexes:**
 - Composite unique index on `[owner_id, name]`
 - Foreign key constraint to users table
+
+### GroupMembership
+**Status:** ✅ Complete with 12 passing specs
+
+The GroupMembership model is a join table connecting Users to Groups as members.
+
+**Attributes:**
+- `user_id` (bigint, required) - Member user
+- `group_id` (bigint, required) - Group being joined
+- `created_at`, `updated_at` (datetime) - Timestamps
+
+**Associations:**
+- `belongs_to :user` - The member
+- `belongs_to :group` - The group being joined
+
+**Validations:**
+- User presence
+- Group presence
+- User uniqueness scoped to group (can't join same group twice)
+
+**Database Indexes:**
+- Composite unique index on `[user_id, group_id]`
+- Foreign key constraints to users and groups tables
+
+**Cascading Deletes:**
+- Destroyed when user is destroyed
+- Destroyed when group is destroyed
 
 ## Development Approach
 
