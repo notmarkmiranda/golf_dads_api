@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_secure_password validations: false
   has_many :sessions, dependent: :destroy
+  has_many :owned_groups, class_name: 'Group', foreign_key: 'owner_id', dependent: :destroy
   has_many :group_memberships, dependent: :destroy
   has_many :groups, through: :group_memberships
   has_many :tee_time_postings, dependent: :destroy

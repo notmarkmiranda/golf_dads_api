@@ -31,8 +31,13 @@ module Api
       false
     end
 
-    def user_not_authorized
-      render json: { error: 'You are not authorized to perform this action' }, status: :forbidden
+    def user_not_authorized(exception)
+      # If user is not authenticated, return 401 instead of 403
+      if current_user.nil?
+        render json: { error: 'Unauthorized' }, status: :unauthorized
+      else
+        render json: { error: 'You are not authorized to perform this action' }, status: :forbidden
+      end
     end
   end
 end

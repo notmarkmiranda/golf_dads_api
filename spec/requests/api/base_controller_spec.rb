@@ -127,10 +127,10 @@ RSpec.describe 'Api::BaseController', type: :request do
         allow(User).to receive(:find).and_return(user)
       end
 
-      it 'attempts authorization without authentication' do
+      it 'returns unauthorized (not forbidden) when user is not authenticated' do
         get "/api/test/#{user.id}"
-        # Will call authorize with nil current_user, which Pundit will deny
-        expect(response).to have_http_status(:forbidden)
+        # Will call authorize with nil current_user, returns 401 (not 403)
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

@@ -125,11 +125,11 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
-- ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete** ← Current Phase
+- 🚧 **Phase 4:** API Endpoints (3/8 steps) - **38% Complete** ← Current Phase
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 25/40 steps (63% complete)**
+**Total Project Progress: 28/40 steps (70% complete)**
 
 ---
 
@@ -196,15 +196,15 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - JWT authentication and authorization error handling implemented
 - All API controllers inherit authentication and authorization from BaseController
 
-### Phase 4: API Endpoints ⏳ PLANNED
+### Phase 4: API Endpoints 🚧 IN PROGRESS (38% complete - 3/8 steps)
 
 | Step | Task | Status |
 |------|------|--------|
-| 21 | Create API namespace and base controller | ⏳ Pending |
-| 22 | Implement Auth endpoints (signup, login, Google OAuth) | ⏳ Pending |
-| 23 | Implement Groups CRUD endpoints | ⏳ Pending |
-| 24 | Implement TeeTimePostings CRUD endpoints | ⏳ Pending |
-| 25 | Implement Reservations CRUD endpoints | ⏳ Pending |
+| 21 | Create API namespace and base controller | ✅ Complete |
+| 22 | Implement Auth endpoints (signup, login, Google OAuth) | ✅ Complete |
+| 23 | Implement Groups CRUD endpoints (23 passing specs) | ✅ Complete |
+| 24 | Implement TeeTimePostings CRUD endpoints with request specs | 🔄 Next |
+| 25 | Implement Reservations CRUD endpoints with request specs | ⏳ Pending |
 | 26 | Add JSON serializers for all models | ⏳ Pending |
 | 27 | Add error handling and validation responses | ⏳ Pending |
 | 28 | Write comprehensive API documentation | ⏳ Pending |
