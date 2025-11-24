@@ -1,0 +1,62 @@
+module Api
+  module V1
+    class TeeTimePostingsController < Api::BaseController
+      before_action :set_tee_time_posting, only: [:show, :update, :destroy]
+
+      # GET /api/v1/tee_time_postings
+      def index
+        authorize TeeTimePosting
+        @tee_time_postings = policy_scope(TeeTimePosting)
+        render json: { tee_time_postings: @tee_time_postings }, status: :ok
+      end
+
+      # GET /api/v1/tee_time_postings/:id
+      def show
+        authorize @tee_time_posting
+        render json: { tee_time_posting: @tee_time_posting }, status: :ok
+      end
+
+      # POST /api/v1/tee_time_postings
+      def create
+        authorize TeeTimePosting
+        @tee_time_posting = current_user.tee_time_postings.build(tee_time_posting_params)
+
+        if @tee_time_posting.save
+          render json: { tee_time_posting: @tee_time_posting }, status: :created
+        else
+          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_entity
+        end
+      end
+
+      # PATCH/PUT /api/v1/tee_time_postings/:id
+      def update
+        authorize @tee_time_posting
+
+        if @tee_time_posting.update(tee_time_posting_params)
+          render json: { tee_time_posting: @tee_time_posting }, status: :ok
+        else
+          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_entity
+        end
+      end
+
+      # DELETE /api/v1/tee_time_postings/:id
+      def destroy
+        authorize @tee_time_posting
+        @tee_time_posting.destroy
+        head :no_content
+      end
+
+      private
+
+      def set_tee_time_posting
+        @tee_time_posting = TeeTimePosting.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'Tee time posting not found' }, status: :not_found
+      end
+
+      def tee_time_posting_params
+        params.require(:tee_time_posting).permit(:tee_time, :course_name, :available_spots, :total_spots, :notes, :group_id)
+      end
+    end
+  end
+end

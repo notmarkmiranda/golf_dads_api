@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       post 'auth/google', to: 'auth#google'
 
       resources :groups
+      resources :tee_time_postings
     end
   end
 
