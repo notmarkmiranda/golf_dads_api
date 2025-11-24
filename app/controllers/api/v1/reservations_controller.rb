@@ -24,7 +24,7 @@ module Api
         if @reservation.save
           render json: { reservation: @reservation }, status: :created
         else
-          render json: { errors: @reservation.errors.messages }, status: :unprocessable_entity
+          render json: { errors: @reservation.errors.messages }, status: :unprocessable_content
         end
       end
 
@@ -35,7 +35,7 @@ module Api
         if @reservation.update(reservation_params)
           render json: { reservation: @reservation }, status: :ok
         else
-          render json: { errors: @reservation.errors.messages }, status: :unprocessable_entity
+          render json: { errors: @reservation.errors.messages }, status: :unprocessable_content
         end
       end
 

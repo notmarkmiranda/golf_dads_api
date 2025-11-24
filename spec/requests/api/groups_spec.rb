@@ -158,7 +158,7 @@ RSpec.describe 'Api::Groups', type: :request do
              params: { group: { description: 'No name' } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('name')
       end
@@ -170,7 +170,7 @@ RSpec.describe 'Api::Groups', type: :request do
              params: { group: { name: 'Duplicate Group' } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('name')
       end
@@ -222,7 +222,7 @@ RSpec.describe 'Api::Groups', type: :request do
               params: { group: { name: '' } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('name')
       end

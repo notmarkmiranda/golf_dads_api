@@ -126,10 +126,10 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
 - 🚧 **Phase 4:** API Endpoints (5/8 steps) - **63% Complete** ← Current Phase
-- ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
+- 🚧 **Phase 5:** Polish & Deploy (1/5 steps) - **20% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 30/40 steps (75% complete)**
+**Total Project Progress: 31/40 steps (78% complete)**
 
 ---
 
@@ -209,12 +209,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 27 | Add error handling and validation responses | ⏳ Pending |
 | 28 | Write comprehensive API documentation | ⏳ Pending |
 
-### Phase 5: Polish & Deploy ⏳ PLANNED
+### Phase 5: Polish & Deploy 🚧 IN PROGRESS (20% complete - 1/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
-| 29 | Add password protection to Avo admin | ⏳ Pending |
-| 30 | Configure CORS for iOS app | ⏳ Pending |
+| 29 | Add password protection to Avo admin | ✅ Complete (HTTP Basic Auth with User validation) |
+| 30 | Configure CORS for iOS app | 🔄 Next |
 | 31 | Set up seed data for development | ⏳ Pending |
 | 32 | Final production deployment and testing | ⏳ Pending |
 | 33 | iOS app integration testing | ⏳ Pending |
@@ -773,6 +773,7 @@ This project follows **Test-Driven Development (TDD)** practices:
 - Located in `spec/requests/api/`
 - Test authentication, authorization, and business logic together
 - Verify HTTP status codes, JSON responses, and error handling
+- **IMPORTANT**: Use `:unprocessable_content` (422) for validation errors, not `:unprocessable_entity` (deprecated in Rails 8)
 
 **Model Testing:**
 - Use model specs for validations, associations, and business logic
@@ -781,6 +782,15 @@ This project follows **Test-Driven Development (TDD)** practices:
 **Policy Testing:**
 - Use policy specs with pundit-matchers for authorization rules
 - Located in `spec/policies/`
+
+**HTTP Status Codes:**
+- 200 OK - Successful GET/PATCH requests
+- 201 Created - Successful POST requests
+- 204 No Content - Successful DELETE requests
+- 401 Unauthorized - Missing or invalid authentication
+- 403 Forbidden - Valid auth but insufficient permissions
+- 404 Not Found - Resource not found
+- 422 Unprocessable Content - Validation errors (use `:unprocessable_content` not `:unprocessable_entity`)
 
 ## Contributing
 

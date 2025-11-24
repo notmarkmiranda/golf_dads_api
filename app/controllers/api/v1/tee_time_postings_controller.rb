@@ -24,7 +24,7 @@ module Api
         if @tee_time_posting.save
           render json: { tee_time_posting: @tee_time_posting }, status: :created
         else
-          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_entity
+          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_content
         end
       end
 
@@ -35,7 +35,7 @@ module Api
         if @tee_time_posting.update(tee_time_posting_params)
           render json: { tee_time_posting: @tee_time_posting }, status: :ok
         else
-          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_entity
+          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_content
         end
       end
 

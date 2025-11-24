@@ -150,7 +150,7 @@ RSpec.describe 'Api::Reservations', type: :request do
              params: { reservation: { spots_reserved: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('tee_time_posting')
       end
@@ -160,7 +160,7 @@ RSpec.describe 'Api::Reservations', type: :request do
              params: { reservation: { tee_time_posting_id: posting.id } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('spots_reserved')
       end
@@ -170,7 +170,7 @@ RSpec.describe 'Api::Reservations', type: :request do
              params: { reservation: { tee_time_posting_id: posting.id, spots_reserved: 0 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('spots_reserved')
       end
@@ -180,7 +180,7 @@ RSpec.describe 'Api::Reservations', type: :request do
              params: { reservation: { tee_time_posting_id: posting.id, spots_reserved: 5 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('spots_reserved')
       end
@@ -192,7 +192,7 @@ RSpec.describe 'Api::Reservations', type: :request do
              params: { reservation: { tee_time_posting_id: posting.id, spots_reserved: 1 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('user_id')
       end
@@ -233,7 +233,7 @@ RSpec.describe 'Api::Reservations', type: :request do
               params: { reservation: { spots_reserved: 0 } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('spots_reserved')
       end
@@ -243,7 +243,7 @@ RSpec.describe 'Api::Reservations', type: :request do
               params: { reservation: { spots_reserved: 10 } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('spots_reserved')
       end

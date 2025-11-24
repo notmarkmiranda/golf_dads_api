@@ -200,7 +200,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
              params: { tee_time_posting: { tee_time: future_time, available_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('course_name')
       end
@@ -210,7 +210,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
              params: { tee_time_posting: { course_name: 'Course', available_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('tee_time')
       end
@@ -220,7 +220,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
              params: { tee_time_posting: { tee_time: future_time, course_name: 'Course', available_spots: 0 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('available_spots')
       end
@@ -230,7 +230,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
              params: { tee_time_posting: { tee_time: 1.day.ago, course_name: 'Course', available_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('tee_time')
       end
@@ -240,7 +240,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
              params: { tee_time_posting: { tee_time: future_time, course_name: 'Course', available_spots: 4, total_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('available_spots')
       end
@@ -293,7 +293,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
               params: { tee_time_posting: { available_spots: 0 } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to have_key('available_spots')
       end

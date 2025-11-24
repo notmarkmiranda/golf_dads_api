@@ -24,7 +24,7 @@ module Api
       if @group.save
         render json: { group: @group }, status: :created
       else
-        render json: { errors: @group.errors.messages }, status: :unprocessable_entity
+        render json: { errors: @group.errors.messages }, status: :unprocessable_content
       end
     end
 
@@ -35,7 +35,7 @@ module Api
       if @group.update(group_params)
         render json: { group: @group }, status: :ok
       else
-        render json: { errors: @group.errors.messages }, status: :unprocessable_entity
+        render json: { errors: @group.errors.messages }, status: :unprocessable_content
       end
     end
 
