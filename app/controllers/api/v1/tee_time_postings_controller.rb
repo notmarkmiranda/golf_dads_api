@@ -24,7 +24,7 @@ module Api
         if @tee_time_posting.save
           render json: { tee_time_posting: @tee_time_posting }, status: :created
         else
-          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_content
+          validation_error_response(@tee_time_posting.errors.messages)
         end
       end
 
@@ -35,7 +35,7 @@ module Api
         if @tee_time_posting.update(tee_time_posting_params)
           render json: { tee_time_posting: @tee_time_posting }, status: :ok
         else
-          render json: { errors: @tee_time_posting.errors.messages }, status: :unprocessable_content
+          validation_error_response(@tee_time_posting.errors.messages)
         end
       end
 
@@ -50,8 +50,6 @@ module Api
 
       def set_tee_time_posting
         @tee_time_posting = TeeTimePosting.find(params[:id])
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Tee time posting not found' }, status: :not_found
       end
 
       def tee_time_posting_params

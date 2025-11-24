@@ -24,7 +24,7 @@ module Api
       if @group.save
         render json: { group: @group }, status: :created
       else
-        render json: { errors: @group.errors.messages }, status: :unprocessable_content
+        validation_error_response(@group.errors.messages)
       end
     end
 
@@ -35,7 +35,7 @@ module Api
       if @group.update(group_params)
         render json: { group: @group }, status: :ok
       else
-        render json: { errors: @group.errors.messages }, status: :unprocessable_content
+        validation_error_response(@group.errors.messages)
       end
     end
 
@@ -50,8 +50,6 @@ module Api
 
       def set_group
         @group = Group.find(params[:id])
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Group not found' }, status: :not_found
       end
 
       def group_params

@@ -14,9 +14,7 @@ module Api
           user: user_response(user)
         }, status: :created
       else
-        render json: {
-          errors: user.errors.messages
-        }, status: :unprocessable_content
+        validation_error_response(user.errors.messages)
       end
     end
 
@@ -31,9 +29,10 @@ module Api
           user: user_response(user)
         }, status: :ok
       else
-        render json: {
-          error: 'Invalid email or password'
-        }, status: :unauthorized
+        error_response(
+          message: 'Invalid email or password',
+          status: :unauthorized
+        )
       end
     end
 
@@ -43,9 +42,10 @@ module Api
       payload = GoogleTokenVerifier.verify(google_token)
 
       unless payload
-        return render json: {
-          error: 'Invalid Google token'
-        }, status: :unauthorized
+        return error_response(
+          message: 'Invalid Google token',
+          status: :unauthorized
+        )
       end
 
       user_info = GoogleTokenVerifier.extract_user_info(payload)

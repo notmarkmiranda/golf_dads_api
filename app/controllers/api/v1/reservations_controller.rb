@@ -24,7 +24,7 @@ module Api
         if @reservation.save
           render json: { reservation: @reservation }, status: :created
         else
-          render json: { errors: @reservation.errors.messages }, status: :unprocessable_content
+          validation_error_response(@reservation.errors.messages)
         end
       end
 
@@ -35,7 +35,7 @@ module Api
         if @reservation.update(reservation_params)
           render json: { reservation: @reservation }, status: :ok
         else
-          render json: { errors: @reservation.errors.messages }, status: :unprocessable_content
+          validation_error_response(@reservation.errors.messages)
         end
       end
 
@@ -50,8 +50,6 @@ module Api
 
       def set_reservation
         @reservation = Reservation.find(params[:id])
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Reservation not found' }, status: :not_found
       end
 
       def reservation_params

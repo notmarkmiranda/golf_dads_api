@@ -125,11 +125,11 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
-- 🚧 **Phase 4:** API Endpoints (6/8 steps) - **75% Complete** ← Current Phase
+- 🚧 **Phase 4:** API Endpoints (7/8 steps) - **88% Complete** ← Current Phase
 - 🚧 **Phase 5:** Polish & Deploy (1/5 steps) - **20% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 32/40 steps (80% complete)**
+**Total Project Progress: 33/40 steps (83% complete)**
 
 ---
 
@@ -196,7 +196,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - JWT authentication and authorization error handling implemented
 - All API controllers inherit authentication and authorization from BaseController
 
-### Phase 4: API Endpoints 🚧 IN PROGRESS (75% complete - 6/8 steps)
+### Phase 4: API Endpoints 🚧 IN PROGRESS (88% complete - 7/8 steps)
 
 | Step | Task | Status |
 |------|------|--------|
@@ -206,8 +206,8 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 24 | Implement TeeTimePostings CRUD endpoints (28 passing specs) | ✅ Complete |
 | 25 | Implement Reservations CRUD endpoints (27 passing specs) | ✅ Complete |
 | 26 | Add JSON serializers for all models | ✅ Complete |
-| 27 | Add error handling and validation responses | 🔄 Next |
-| 28 | Write comprehensive API documentation | ⏳ Pending |
+| 27 | Add error handling and validation responses | ✅ Complete |
+| 28 | Write comprehensive API documentation | 🔄 Next |
 
 ### Phase 5: Polish & Deploy 🚧 IN PROGRESS (20% complete - 1/5 steps)
 
@@ -305,6 +305,123 @@ class Api::GroupsController < Api::BaseController
     authorize @group  # Raises Pundit::NotAuthorizedError if not allowed
     # ...
   end
+end
+```
+
+## Error Handling
+
+**Status:** ✅ Complete
+
+The API uses a centralized error handling system via the `ErrorHandler` concern module that provides standardized error responses across all endpoints.
+
+### Error Response Format
+
+All errors follow a consistent JSON format:
+
+**Simple Error:**
+```json
+{
+  "error": "Error message here"
+}
+```
+
+**Validation Errors:**
+```json
+{
+  "errors": {
+    "field_name": ["error message 1", "error message 2"],
+    "another_field": ["error message"]
+  }
+}
+```
+
+### HTTP Status Codes
+
+| Status Code | Description | When Used |
+|------------|-------------|-----------|
+| **200 OK** | Successful GET/PATCH requests | Resource retrieved or updated successfully |
+| **201 Created** | Successful POST requests | New resource created |
+| **204 No Content** | Successful DELETE requests | Resource deleted successfully |
+| **400 Bad Request** | Missing required parameters | Required parameter not provided |
+| **401 Unauthorized** | Missing or invalid authentication | No token or invalid/expired token |
+| **403 Forbidden** | Valid auth but insufficient permissions | User authenticated but not authorized |
+| **404 Not Found** | Resource not found | Requested resource doesn't exist |
+| **422 Unprocessable Content** | Validation errors | Input data fails validation rules |
+
+### Automatic Error Handling
+
+The `ErrorHandler` concern automatically handles common Rails errors:
+
+**ActiveRecord::RecordNotFound (404)**
+```json
+{
+  "error": "Group not found"
+}
+```
+
+**Pundit::NotAuthorizedError (401 or 403)**
+```json
+{
+  "error": "Unauthorized"  // When not authenticated
+}
+```
+```json
+{
+  "error": "You are not authorized to perform this action"  // When authenticated but not authorized
+}
+```
+
+**ActionController::ParameterMissing (400)**
+```json
+{
+  "error": "Required parameter is missing",
+  "details": {
+    "parameter": "user"
+  }
+}
+```
+
+**ActiveRecord::RecordInvalid (422)**
+```json
+{
+  "errors": {
+    "email_address": ["has already been taken"],
+    "password": ["is too short (minimum is 8 characters)"]
+  }
+}
+```
+
+### Helper Methods
+
+The `ErrorHandler` concern provides helper methods for controllers:
+
+**error_response** - For simple error messages:
+```ruby
+error_response(
+  message: 'Invalid email or password',
+  status: :unauthorized
+)
+```
+
+**validation_error_response** - For model validation errors:
+```ruby
+validation_error_response(@user.errors.messages)
+```
+
+### Implementation
+
+Located in `app/controllers/concerns/error_handler.rb`, the module:
+- Uses `rescue_from` to catch common exceptions
+- Provides standardized error response methods
+- Automatically handles 404, 401, 403, 400, and 422 errors
+- Ensures consistent error formats across all API endpoints
+
+All API controllers inherit error handling via `Api::BaseController`:
+```ruby
+class BaseController < ActionController::API
+  include Pundit::Authorization
+  include ErrorHandler
+  # ...
 end
 ```
 
