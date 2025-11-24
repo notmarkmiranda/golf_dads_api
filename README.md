@@ -765,6 +765,23 @@ This project follows **Test-Driven Development (TDD)** practices:
 2. Implement minimal code to pass (Green)
 3. Refactor for quality (Refactor)
 
+### Testing Strategy
+
+**API Testing:**
+- Use **request specs** (not controller specs) for testing API endpoints
+- Request specs test the full HTTP request/response cycle
+- Located in `spec/requests/api/`
+- Test authentication, authorization, and business logic together
+- Verify HTTP status codes, JSON responses, and error handling
+
+**Model Testing:**
+- Use model specs for validations, associations, and business logic
+- Located in `spec/models/`
+
+**Policy Testing:**
+- Use policy specs with pundit-matchers for authorization rules
+- Located in `spec/policies/`
+
 ## Contributing
 
 This is a private project for the Golf Dads community.
