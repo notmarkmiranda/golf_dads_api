@@ -1,5 +1,7 @@
 module Api
   class AuthController < Api::BaseController
+    skip_before_action :authenticate_request, only: [:signup, :login, :google]
+
     # POST /api/auth/signup
     def signup
       user = User.new(signup_params)

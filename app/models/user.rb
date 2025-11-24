@@ -38,10 +38,10 @@ class User < ApplicationRecord
   end
 
   # Generate JWT token for API authentication
-  def generate_jwt
+  def generate_jwt(exp: nil)
     JsonWebToken.encode({
       user_id: id,
       email: email_address
-    })
+    }, exp: exp)
   end
 end

@@ -123,13 +123,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- ✅ **Phase 2:** Core Models with TDD (14/15 steps) - **93% Complete**
-- 🚧 **Phase 3:** Authorization (1/5 steps) - **20% Complete** ← Current Phase
-- ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
+- ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
+- ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
+- ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete** ← Current Phase
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 24/40 steps (60% complete)**
+**Total Project Progress: 25/40 steps (63% complete)**
 
 ---
 
@@ -178,7 +178,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - Avo admin is protected with HTTP Basic Auth that validates User credentials and admin flag (Step 14 complete)
 - Documentation is updated after each major milestone
 
-### Phase 3: Authorization 🚧 IN PROGRESS (80% complete - 4/5 steps)
+### Phase 3: Authorization ✅ COMPLETE (5/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
@@ -186,14 +186,15 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 17 | Create Pundit policies for Group resource (20 passing specs) + document | ✅ Complete |
 | 18 | Create Pundit policies for TeeTimePosting (19 specs) & Reservation (19 specs) + document | ✅ Complete |
 | 19 | Write authorization specs for all policies | ✅ Complete |
-| 20 | Integrate Pundit with API controllers + document | 🔄 Next |
+| 20 | Integrate Pundit with API controllers (11 passing specs) + document | ✅ Complete |
 
 **Notes:**
 - Pundit base policy installed and configured
 - pundit-matchers gem added for testing
 - Authorization specs written alongside each policy (TDD approach)
-- Step 19 is ongoing as we write specs with each policy
-- **IMPORTANT**: Update README documentation after completing each step
+- Api::BaseController integrated with Pundit authorization
+- JWT authentication and authorization error handling implemented
+- All API controllers inherit authentication and authorization from BaseController
 
 ### Phase 4: API Endpoints ⏳ PLANNED
 
@@ -249,6 +250,63 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 ---
 
 **Overall Progress: Phase 3 of 5 (20% of Phase 3 complete)**
+
+## API Authentication & Authorization
+
+### API Base Controller
+**Status:** ✅ Complete with 11 passing specs
+
+The `Api::BaseController` provides JWT authentication and Pundit authorization for all API endpoints.
+
+**Features:**
+- **JWT Authentication**: Extracts and validates JWT tokens from Authorization header
+- **Pundit Integration**: Automatic authorization using Pundit policies
+- **Error Handling**: Standardized error responses for authentication and authorization failures
+- **Helper Methods**:
+  - `current_user` - Returns authenticated user from JWT token
+  - `authenticate_request` - Extracts and validates JWT token (runs on every request)
+  - `require_authentication` - Enforces authentication requirement (returns 401 if not authenticated)
+  - `user_not_authorized` - Handles Pundit::NotAuthorizedError (returns 403)
+
+**JWT Token Format:**
+```
+Authorization: Bearer <token>
+```
+
+**Error Responses:**
+- **401 Unauthorized**: User not authenticated (missing or invalid token)
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+- **403 Forbidden**: User not authorized to perform action (valid token but insufficient permissions)
+```json
+{
+  "error": "You are not authorized to perform this action"
+}
+```
+
+**Usage in Controllers:**
+```ruby
+class Api::GroupsController < Api::BaseController
+  # Authentication happens automatically via before_action
+
+  def index
+    # Authorize using Pundit policy
+    authorize Group
+    @groups = policy_scope(Group)
+    # ...
+  end
+
+  def update
+    @group = Group.find(params[:id])
+    authorize @group  # Raises Pundit::NotAuthorizedError if not allowed
+    # ...
+  end
+end
+```
 
 ## API Endpoints
 
