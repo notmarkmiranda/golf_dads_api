@@ -125,11 +125,11 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
-- 🚧 **Phase 4:** API Endpoints (5/8 steps) - **63% Complete** ← Current Phase
+- 🚧 **Phase 4:** API Endpoints (6/8 steps) - **75% Complete** ← Current Phase
 - 🚧 **Phase 5:** Polish & Deploy (1/5 steps) - **20% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 31/40 steps (78% complete)**
+**Total Project Progress: 32/40 steps (80% complete)**
 
 ---
 
@@ -196,7 +196,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - JWT authentication and authorization error handling implemented
 - All API controllers inherit authentication and authorization from BaseController
 
-### Phase 4: API Endpoints 🚧 IN PROGRESS (63% complete - 5/8 steps)
+### Phase 4: API Endpoints 🚧 IN PROGRESS (75% complete - 6/8 steps)
 
 | Step | Task | Status |
 |------|------|--------|
@@ -205,8 +205,8 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 23 | Implement Groups CRUD endpoints (23 passing specs) | ✅ Complete |
 | 24 | Implement TeeTimePostings CRUD endpoints (28 passing specs) | ✅ Complete |
 | 25 | Implement Reservations CRUD endpoints (27 passing specs) | ✅ Complete |
-| 26 | Add JSON serializers for all models | 🔄 Next |
-| 27 | Add error handling and validation responses | ⏳ Pending |
+| 26 | Add JSON serializers for all models | ✅ Complete |
+| 27 | Add error handling and validation responses | 🔄 Next |
 | 28 | Write comprehensive API documentation | ⏳ Pending |
 
 ### Phase 5: Polish & Deploy 🚧 IN PROGRESS (20% complete - 1/5 steps)
@@ -757,6 +757,51 @@ All models have comprehensive Avo admin resources for data management. The admin
 - Searchable user and tee time posting associations
 - Validation hints: minimum 1 spot, help text for spots reserved
 - Shows when reservation was made
+
+## JSON Serializers
+
+**Status:** ✅ Complete
+
+All models have JSON API-compliant serializers using the JSONAPI Serializer gem. Serializers are available for future use when JSON API format is needed.
+
+### Available Serializers
+
+**UserSerializer**
+- Attributes: email_address, name, avatar_url, provider, admin, created_at, updated_at
+- Associations: group_memberships, groups, tee_time_postings, reservations
+
+**GroupSerializer**
+- Attributes: name, description, created_at, updated_at
+- Associations: owner, group_memberships, members, tee_time_postings
+
+**GroupMembershipSerializer**
+- Attributes: created_at, updated_at
+- Associations: user, group
+
+**TeeTimePostingSerializer**
+- Attributes: tee_time, course_name, available_spots, total_spots, notes, created_at, updated_at
+- Computed attributes: public (boolean), past (boolean)
+- Associations: user, group, reservations
+
+**ReservationSerializer**
+- Attributes: spots_reserved, created_at, updated_at
+- Associations: user, tee_time_posting
+
+### Usage
+
+Serializers can be used in controllers for JSON API format responses:
+
+```ruby
+# Single resource
+serialized_user = UserSerializer.new(user).serializable_hash
+render json: serialized_user
+
+# Collection
+serialized_groups = GroupSerializer.new(groups).serializable_hash
+render json: serialized_groups
+```
+
+**Note:** Current API endpoints use Rails default JSON rendering for simplicity. Serializers are available for future enhancements when JSON API format specification is required.
 
 ## Development Approach
 
