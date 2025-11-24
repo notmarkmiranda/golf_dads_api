@@ -125,11 +125,11 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
-- 🚧 **Phase 4:** API Endpoints (7/8 steps) - **88% Complete** ← Current Phase
-- 🚧 **Phase 5:** Polish & Deploy (1/5 steps) - **20% Complete**
+- ✅ **Phase 4:** API Endpoints (8/8 steps) - **100% Complete**
+- 🚧 **Phase 5:** Polish & Deploy (1/5 steps) - **20% Complete** ← Current Phase
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 33/40 steps (83% complete)**
+**Total Project Progress: 34/40 steps (85% complete)**
 
 ---
 
@@ -196,7 +196,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - JWT authentication and authorization error handling implemented
 - All API controllers inherit authentication and authorization from BaseController
 
-### Phase 4: API Endpoints 🚧 IN PROGRESS (88% complete - 7/8 steps)
+### Phase 4: API Endpoints ✅ COMPLETE (8/8 steps)
 
 | Step | Task | Status |
 |------|------|--------|
@@ -207,7 +207,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 25 | Implement Reservations CRUD endpoints (27 passing specs) | ✅ Complete |
 | 26 | Add JSON serializers for all models | ✅ Complete |
 | 27 | Add error handling and validation responses | ✅ Complete |
-| 28 | Write comprehensive API documentation | 🔄 Next |
+| 28 | Write comprehensive API documentation | ✅ Complete |
 
 ### Phase 5: Polish & Deploy 🚧 IN PROGRESS (20% complete - 1/5 steps)
 
@@ -555,6 +555,533 @@ Authenticates a user via Google Sign-In token and returns a JWT token.
 - Set `GOOGLE_CLIENT_ID` environment variable for production
 - iOS app should use Google Sign-In SDK to obtain ID token
 - Send the ID token to this endpoint for verification
+
+### Groups
+
+All Groups endpoints require authentication. Users can only see groups they own or are members of.
+
+#### GET /api/v1/groups
+**Status:** ✅ Complete with 23 passing specs
+
+Returns all groups that the authenticated user owns or is a member of.
+
+**Request:**
+```
+GET /api/v1/groups
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "groups": [
+    {
+      "id": 1,
+      "name": "My Golf Group",
+      "description": "Weekly golf buddies",
+      "owner_id": 1,
+      "created_at": "2025-01-15T10:00:00.000Z",
+      "updated_at": "2025-01-15T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Authorization:**
+- Returns only groups where user is owner or member
+- Returns empty array if user has no groups
+
+#### GET /api/v1/groups/:id
+**Status:** ✅ Complete
+
+Returns details for a specific group.
+
+**Request:**
+```
+GET /api/v1/groups/1
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "group": {
+    "id": 1,
+    "name": "My Golf Group",
+    "description": "Weekly golf buddies",
+    "owner_id": 1,
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "updated_at": "2025-01-15T10:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is not owner or member of group
+- **404 Not Found:** Group does not exist
+
+#### POST /api/v1/groups
+**Status:** ✅ Complete
+
+Creates a new group owned by the authenticated user.
+
+**Request:**
+```json
+{
+  "group": {
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf group"
+  }
+}
+```
+
+**Successful Response (201 Created):**
+```json
+{
+  "group": {
+    "id": 2,
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf group",
+    "owner_id": 1,
+    "created_at": "2025-01-15T10:30:00.000Z",
+    "updated_at": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+**Error Response (422 Unprocessable Content):**
+```json
+{
+  "errors": {
+    "name": ["can't be blank"],
+    "name": ["has already been taken"]
+  }
+}
+```
+
+**Validation Rules:**
+- `name` is required
+- `name` must be unique per owner (same user can't have duplicate group names)
+- `description` is optional
+
+#### PATCH /api/v1/groups/:id
+**Status:** ✅ Complete
+
+Updates a group. Only the group owner can update.
+
+**Request:**
+```json
+{
+  "group": {
+    "name": "Updated Group Name",
+    "description": "New description"
+  }
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "group": {
+    "id": 1,
+    "name": "Updated Group Name",
+    "description": "New description",
+    "owner_id": 1,
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "updated_at": "2025-01-15T10:35:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is not the group owner
+- **404 Not Found:** Group does not exist
+- **422 Unprocessable Content:** Validation errors
+
+#### DELETE /api/v1/groups/:id
+**Status:** ✅ Complete
+
+Deletes a group. Only the group owner can delete.
+
+**Request:**
+```
+DELETE /api/v1/groups/1
+Authorization: Bearer <token>
+```
+
+**Successful Response (204 No Content):**
+```
+(empty response body)
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is not the group owner
+- **404 Not Found:** Group does not exist
+
+### Tee Time Postings
+
+Tee time postings can be public (visible to all users) or group-specific (visible only to group members).
+
+#### GET /api/v1/tee_time_postings
+**Status:** ✅ Complete with 28 passing specs
+
+Returns all tee time postings visible to the authenticated user (public postings + postings in user's groups).
+
+**Request:**
+```
+GET /api/v1/tee_time_postings
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "tee_time_postings": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "group_id": null,
+      "tee_time": "2025-01-20T08:00:00.000Z",
+      "course_name": "Pebble Beach",
+      "available_spots": 2,
+      "total_spots": 4,
+      "notes": "Looking for 2 more players",
+      "created_at": "2025-01-15T10:00:00.000Z",
+      "updated_at": "2025-01-15T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Authorization:**
+- Returns public postings (group_id = null)
+- Returns postings from groups where user is owner or member
+- Does not return postings from groups user is not part of
+
+#### GET /api/v1/tee_time_postings/:id
+**Status:** ✅ Complete
+
+Returns details for a specific tee time posting.
+
+**Request:**
+```
+GET /api/v1/tee_time_postings/1
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "tee_time_posting": {
+    "id": 1,
+    "user_id": 1,
+    "group_id": null,
+    "tee_time": "2025-01-20T08:00:00.000Z",
+    "course_name": "Pebble Beach",
+    "available_spots": 2,
+    "total_spots": 4,
+    "notes": "Looking for 2 more players",
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "updated_at": "2025-01-15T10:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- **403 Forbidden:** Posting is for a group where user is not a member
+- **404 Not Found:** Posting does not exist
+
+#### POST /api/v1/tee_time_postings
+**Status:** ✅ Complete
+
+Creates a new tee time posting.
+
+**Request (Public Posting):**
+```json
+{
+  "tee_time_posting": {
+    "tee_time": "2025-01-20T08:00:00.000Z",
+    "course_name": "Pebble Beach",
+    "available_spots": 2,
+    "total_spots": 4,
+    "notes": "Looking for 2 more players"
+  }
+}
+```
+
+**Request (Group Posting):**
+```json
+{
+  "tee_time_posting": {
+    "group_id": 1,
+    "tee_time": "2025-01-20T08:00:00.000Z",
+    "course_name": "Pebble Beach",
+    "available_spots": 2,
+    "total_spots": 4,
+    "notes": "Group members only"
+  }
+}
+```
+
+**Successful Response (201 Created):**
+```json
+{
+  "tee_time_posting": {
+    "id": 1,
+    "user_id": 1,
+    "group_id": null,
+    "tee_time": "2025-01-20T08:00:00.000Z",
+    "course_name": "Pebble Beach",
+    "available_spots": 2,
+    "total_spots": 4,
+    "notes": "Looking for 2 more players",
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "updated_at": "2025-01-15T10:00:00.000Z"
+  }
+}
+```
+
+**Error Response (422 Unprocessable Content):**
+```json
+{
+  "errors": {
+    "tee_time": ["can't be blank", "must be in the future"],
+    "course_name": ["can't be blank"],
+    "available_spots": ["must be greater than 0", "must be less than or equal to total spots"]
+  }
+}
+```
+
+**Validation Rules:**
+- `tee_time` is required and must be in the future (for new postings)
+- `course_name` is required
+- `available_spots` is required and must be > 0
+- `total_spots` must be > 0 if provided
+- `available_spots` must not exceed `total_spots`
+- `group_id` is optional (null = public posting)
+- `notes` is optional
+
+#### PATCH /api/v1/tee_time_postings/:id
+**Status:** ✅ Complete
+
+Updates a tee time posting. Only the posting creator can update.
+
+**Request:**
+```json
+{
+  "tee_time_posting": {
+    "available_spots": 1,
+    "notes": "Only 1 spot left!"
+  }
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "tee_time_posting": {
+    "id": 1,
+    "user_id": 1,
+    "group_id": null,
+    "tee_time": "2025-01-20T08:00:00.000Z",
+    "course_name": "Pebble Beach",
+    "available_spots": 1,
+    "total_spots": 4,
+    "notes": "Only 1 spot left!",
+    "created_at": "2025-01-15T10:00:00.000Z",
+    "updated_at": "2025-01-15T10:40:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is not the posting creator
+- **404 Not Found:** Posting does not exist
+- **422 Unprocessable Content:** Validation errors
+
+#### DELETE /api/v1/tee_time_postings/:id
+**Status:** ✅ Complete
+
+Deletes a tee time posting. Only the posting creator can delete.
+
+**Request:**
+```
+DELETE /api/v1/tee_time_postings/1
+Authorization: Bearer <token>
+```
+
+**Successful Response (204 No Content):**
+```
+(empty response body)
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is not the posting creator
+- **404 Not Found:** Posting does not exist
+
+### Reservations
+
+Reservations allow users to claim available spots on tee time postings.
+
+#### GET /api/v1/reservations
+**Status:** ✅ Complete with 27 passing specs
+
+Returns all reservations for the authenticated user (both reservations they made and reservations on their postings).
+
+**Request:**
+```
+GET /api/v1/reservations
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "reservations": [
+    {
+      "id": 1,
+      "user_id": 2,
+      "tee_time_posting_id": 1,
+      "spots_reserved": 2,
+      "created_at": "2025-01-15T11:00:00.000Z",
+      "updated_at": "2025-01-15T11:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Authorization:**
+- Returns reservations made by the user
+- Returns reservations on postings created by the user
+
+#### GET /api/v1/reservations/:id
+**Status:** ✅ Complete
+
+Returns details for a specific reservation.
+
+**Request:**
+```
+GET /api/v1/reservations/1
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "reservation": {
+    "id": 1,
+    "user_id": 2,
+    "tee_time_posting_id": 1,
+    "spots_reserved": 2,
+    "created_at": "2025-01-15T11:00:00.000Z",
+    "updated_at": "2025-01-15T11:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is neither the reserver nor the posting creator
+- **404 Not Found:** Reservation does not exist
+
+#### POST /api/v1/reservations
+**Status:** ✅ Complete
+
+Creates a new reservation for a tee time posting.
+
+**Request:**
+```json
+{
+  "reservation": {
+    "tee_time_posting_id": 1,
+    "spots_reserved": 2
+  }
+}
+```
+
+**Successful Response (201 Created):**
+```json
+{
+  "reservation": {
+    "id": 1,
+    "user_id": 2,
+    "tee_time_posting_id": 1,
+    "spots_reserved": 2,
+    "created_at": "2025-01-15T11:00:00.000Z",
+    "updated_at": "2025-01-15T11:00:00.000Z"
+  }
+}
+```
+
+**Error Response (422 Unprocessable Content):**
+```json
+{
+  "errors": {
+    "spots_reserved": ["must be greater than 0", "exceeds available spots"],
+    "user_id": ["has already reserved this posting"]
+  }
+}
+```
+
+**Validation Rules:**
+- `tee_time_posting_id` is required
+- `spots_reserved` is required and must be > 0
+- `spots_reserved` cannot exceed available spots on the posting
+- User can only have one reservation per posting
+
+#### PATCH /api/v1/reservations/:id
+**Status:** ✅ Complete
+
+Updates a reservation. Only the reserver can update.
+
+**Request:**
+```json
+{
+  "reservation": {
+    "spots_reserved": 1
+  }
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "reservation": {
+    "id": 1,
+    "user_id": 2,
+    "tee_time_posting_id": 1,
+    "spots_reserved": 1,
+    "created_at": "2025-01-15T11:00:00.000Z",
+    "updated_at": "2025-01-15T11:05:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is not the reserver
+- **404 Not Found:** Reservation does not exist
+- **422 Unprocessable Content:** Validation errors
+
+#### DELETE /api/v1/reservations/:id
+**Status:** ✅ Complete
+
+Deletes a reservation. Can be deleted by the reserver OR the posting creator.
+
+**Request:**
+```
+DELETE /api/v1/reservations/1
+Authorization: Bearer <token>
+```
+
+**Successful Response (204 No Content):**
+```
+(empty response body)
+```
+
+**Error Responses:**
+- **403 Forbidden:** User is neither the reserver nor the posting creator
+- **404 Not Found:** Reservation does not exist
+
+**Note:** Posting creators can cancel reservations on their postings to manage their tee times.
 
 ## Models
 
