@@ -129,7 +129,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 22/40 steps (55% complete)**
+**Total Project Progress: 24/40 steps (60% complete)**
 
 ---
 
@@ -178,15 +178,15 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - Avo admin is protected with HTTP Basic Auth that validates User credentials and admin flag (Step 14 complete)
 - Documentation is updated after each major milestone
 
-### Phase 3: Authorization 🚧 IN PROGRESS (40% complete - 2/5 steps)
+### Phase 3: Authorization 🚧 IN PROGRESS (80% complete - 4/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
 | 16 | Create Pundit policies for User resource (16 passing specs) + document | ✅ Complete |
 | 17 | Create Pundit policies for Group resource (20 passing specs) + document | ✅ Complete |
-| 18 | Create Pundit policies for TeeTimePosting & Reservation resources + document | 🔄 Next |
-| 19 | Write authorization specs for all policies | ✅ Ongoing |
-| 20 | Integrate Pundit with API controllers + document | ⏳ Pending |
+| 18 | Create Pundit policies for TeeTimePosting (19 specs) & Reservation (19 specs) + document | ✅ Complete |
+| 19 | Write authorization specs for all policies | ✅ Complete |
+| 20 | Integrate Pundit with API controllers + document | 🔄 Next |
 
 **Notes:**
 - Pundit base policy installed and configured
@@ -628,6 +628,37 @@ Authorization is handled by Pundit policies that control who can perform actions
 - Authenticated users can see groups they own or are members of
 - Guests see empty scope
 - Uses efficient SQL query with left joins to fetch both owned and member groups
+
+### TeeTimePostingPolicy
+**Status:** ✅ Complete with 19 passing specs
+
+**Rules:**
+- **index**: Authenticated users can list tee time postings
+- **show**: Users can view public postings OR postings in groups they're members of OR their own postings
+- **create**: Authenticated users can create tee time postings
+- **update**: Only the posting creator can update their posting; admins can update any posting
+- **destroy**: Only the posting creator can destroy their posting; admins can destroy any posting
+
+**Scope:**
+- Authenticated users can see public postings + postings in their groups (owned or member)
+- Guests see empty scope
+- Uses efficient SQL query with left joins to fetch public and group postings
+
+### ReservationPolicy
+**Status:** ✅ Complete with 19 passing specs
+
+**Rules:**
+- **index**: Authenticated users can list reservations
+- **show**: Users can view their own reservations OR reservations on their tee time postings
+- **create**: Authenticated users can create reservations
+- **update**: Only the reserver can update their reservation; admins can update any reservation
+- **destroy**: The reserver OR posting creator can destroy the reservation; admins can destroy any reservation
+
+**Scope:**
+- Authenticated users can see their own reservations + reservations on their postings
+- Guests see empty scope
+- Posting creators can see and cancel reservations on their postings
+- Uses efficient SQL query with left joins to fetch user and posting-related reservations
 
 ## Avo Admin Resources
 
