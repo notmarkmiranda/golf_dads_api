@@ -129,7 +129,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 21/40 steps (53% complete)**
+**Total Project Progress: 22/40 steps (55% complete)**
 
 ---
 
@@ -178,13 +178,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - Avo admin is protected with HTTP Basic Auth that validates User credentials and admin flag (Step 14 complete)
 - Documentation is updated after each major milestone
 
-### Phase 3: Authorization 🚧 IN PROGRESS (20% complete - 1/5 steps)
+### Phase 3: Authorization 🚧 IN PROGRESS (40% complete - 2/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
 | 16 | Create Pundit policies for User resource (16 passing specs) + document | ✅ Complete |
-| 17 | Create Pundit policies for Group resource + document | 🔄 Next |
-| 18 | Create Pundit policies for TeeTimePosting & Reservation resources + document | ⏳ Pending |
+| 17 | Create Pundit policies for Group resource (20 passing specs) + document | ✅ Complete |
+| 18 | Create Pundit policies for TeeTimePosting & Reservation resources + document | 🔄 Next |
 | 19 | Write authorization specs for all policies | ✅ Ongoing |
 | 20 | Integrate Pundit with API controllers + document | ⏳ Pending |
 
@@ -613,6 +613,21 @@ Authorization is handled by Pundit policies that control who can perform actions
 **Scope:**
 - Authenticated users can see all users
 - Guests see empty scope
+
+### GroupPolicy
+**Status:** ✅ Complete with 20 passing specs
+
+**Rules:**
+- **index**: Authenticated users can list groups
+- **show**: Users can view groups they own or are members of
+- **create**: Authenticated users can create groups
+- **update**: Only the group owner can update their group; admins can update any group
+- **destroy**: Only the group owner can destroy their group; admins can destroy any group
+
+**Scope:**
+- Authenticated users can see groups they own or are members of
+- Guests see empty scope
+- Uses efficient SQL query with left joins to fetch both owned and member groups
 
 ## Avo Admin Resources
 
