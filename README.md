@@ -101,8 +101,9 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
+- 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 16/33 steps (48% complete)**
+**Total Project Progress: 16/40 steps (40% complete)**
 
 ---
 
@@ -183,6 +184,34 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 31 | Set up seed data for development | ⏳ Pending |
 | 32 | Final production deployment and testing | ⏳ Pending |
 | 33 | iOS app integration testing | ⏳ Pending |
+
+### Phase 6: Golf Course Integration ⏳ FUTURE
+
+**Goal:** Integrate golf course data to provide course information with tee time postings
+
+| Step | Task | Status |
+|------|------|--------|
+| 34 | Research and select golf course API provider | ⏳ Future |
+| 35 | Generate GolfCourse model with TDD | ⏳ Future |
+| 36 | Integrate golf course API service | ⏳ Future |
+| 37 | Add golf course association to TeeTimePosting | ⏳ Future |
+| 38 | Create API endpoints for golf course search/details | ⏳ Future |
+| 39 | Add course stats display (par, slope, rating, holes) | ⏳ Future |
+| 40 | Create Avo resource for golf course management | ⏳ Future |
+
+**Golf Course Features:**
+- Course name, location, and contact info
+- Course stats (par, slope, rating, yardage)
+- Number of holes (9 or 18)
+- Amenities and facilities
+- Course photos and description
+- Associated with tee time postings
+
+**API Options to Consider:**
+- Golf Genius - Comprehensive course data and tee sheet management
+- USGA Course Rating Database - Official ratings and slope
+- GolfNow API - Course info with tee time availability
+- Custom data entry - Manual course creation through admin panel
 
 ---
 
