@@ -77,6 +77,50 @@ bundle exec rspec spec/models/user_spec.rb
 bundle exec rspec --format documentation
 ```
 
+### Seed Data
+
+```bash
+# Load seed data for development
+rails db:seed
+```
+
+The seed data creates:
+- **5 Users** including 1 admin
+- **4 Groups** with different themes
+- **5 Group Memberships** connecting users to groups
+- **7 Tee Time Postings** (4 public, 3 group-specific)
+- **4 Reservations** showing active bookings
+
+**Test Credentials:**
+- Admin: `notmarkmiranda@gmail.com` / `password1234`
+- Users: `john@example.com`, `jane@example.com`, `mike@example.com`, `sarah@example.com`
+- Password for all users: `password1234`
+
+**What's Included:**
+
+*Users:*
+- Admin User (admin access)
+- John Smith (owns Weekend Warriors & Early Birds groups)
+- Jane Doe (owns Ladies League group)
+- Mike Johnson (owns Corporate Crew group)
+- Sarah Williams (regular user)
+
+*Groups:*
+- Weekend Warriors (John's group) - Jane and Mike are members
+- Early Birds (John's group)
+- Ladies League (Jane's group) - Sarah is a member
+- Corporate Crew (Mike's group) - John and Sarah are members
+
+*Tee Time Postings:*
+- 4 public postings at various famous courses
+- 3 group-specific postings
+- 1 past posting (for testing historical data)
+
+*Reservations:*
+- Sample reservations showing users claiming spots
+
+**Note:** Running `rails db:seed` in development will clear existing data and recreate fresh seed data.
+
 ### Development Server
 
 ```bash
@@ -126,10 +170,10 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 - ✅ **Phase 2:** Core Models with TDD (15/15 steps) - **100% Complete**
 - ✅ **Phase 3:** Authorization (5/5 steps) - **100% Complete**
 - ✅ **Phase 4:** API Endpoints (8/8 steps) - **100% Complete**
-- 🚧 **Phase 5:** Polish & Deploy (2/5 steps) - **40% Complete** ← Current Phase
+- 🚧 **Phase 5:** Polish & Deploy (3/5 steps) - **60% Complete** ← Current Phase
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 35/40 steps (88% complete)**
+**Total Project Progress: 36/40 steps (90% complete)**
 
 ---
 
@@ -209,14 +253,14 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 27 | Add error handling and validation responses | ✅ Complete |
 | 28 | Write comprehensive API documentation | ✅ Complete |
 
-### Phase 5: Polish & Deploy 🚧 IN PROGRESS (40% complete - 2/5 steps)
+### Phase 5: Polish & Deploy 🚧 IN PROGRESS (60% complete - 3/5 steps)
 
 | Step | Task | Status |
 |------|------|--------|
 | 29 | Add password protection to Avo admin | ✅ Complete (HTTP Basic Auth with User validation) |
 | 30 | Configure CORS for iOS app | ✅ Complete |
-| 31 | Set up seed data for development | 🔄 Next |
-| 32 | Final production deployment and testing | ⏳ Pending |
+| 31 | Set up seed data for development | ✅ Complete |
+| 32 | Final production deployment and testing | 🔄 Next |
 | 33 | iOS app integration testing | ⏳ Pending |
 
 ### Phase 6: Golf Course Integration ⏳ FUTURE
