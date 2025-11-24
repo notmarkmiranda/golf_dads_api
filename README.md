@@ -97,12 +97,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (8/15 steps) - **53% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (9/15 steps) - **60% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 
-**Total Project Progress: 14/33 steps (42% complete)**
+**Total Project Progress: 15/33 steps (45% complete)**
 
 ---
 
@@ -129,12 +129,12 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 7 | Add Google OAuth token verification service (8 passing tests) | ✅ Complete |
 | 8 | Create Google sign-in endpoint with specs | ✅ Complete |
 
-**Core Models (0/4 steps complete)**
+**Core Models (1/4 steps complete)**
 
 | Step | Task | Status |
 |------|------|--------|
-| 9 | Generate Group model with TDD | 🔄 Next |
-| 10 | Generate GroupMembership model with TDD | ⏳ Pending |
+| 9 | Generate Group model with TDD (8 passing specs) | ✅ Complete |
+| 10 | Generate GroupMembership model with TDD | 🔄 Next |
 | 11 | Generate TeeTimePosting model with TDD | ⏳ Pending |
 | 12 | Generate Reservation model with TDD | ⏳ Pending |
 
@@ -186,7 +186,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (53% of Phase 2 complete)**
+**Overall Progress: Phase 2 of 5 (60% of Phase 2 complete)**
 
 ## API Endpoints
 
@@ -392,6 +392,31 @@ The GoogleTokenVerifier service handles server-side verification of Google Sign-
 - Requires GOOGLE_CLIENT_ID environment variable
 - Graceful error handling returns nil for any verification failures
 - Extracts user profile data (email, name, picture) from token
+
+### Group
+**Status:** ✅ Complete with 8 passing specs
+
+The Group model represents a collection of golfers who share tee time postings.
+
+**Attributes:**
+- `name` (string, required) - Group name
+- `description` (text, optional) - Group description
+- `owner_id` (bigint, required) - User who created the group
+- `created_at`, `updated_at` (datetime) - Timestamps
+
+**Associations:**
+- `belongs_to :owner` (User) - Group creator
+- `has_many :group_memberships` - Join table records
+- `has_many :members` through :group_memberships - Group members
+
+**Validations:**
+- Name presence and uniqueness scoped to owner
+- Owner presence
+- Allows same group name for different owners
+
+**Database Indexes:**
+- Composite unique index on `[owner_id, name]`
+- Foreign key constraint to users table
 
 ## Development Approach
 

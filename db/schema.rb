@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_23_232504) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_24_000737) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "groups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.bigint "owner_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["owner_id", "name"], name: "index_groups_on_owner_id_and_name", unique: true
+    t.index ["owner_id"], name: "index_groups_on_owner_id"
+  end
 
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -36,5 +46,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_23_232504) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
+  add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "sessions", "users"
 end
