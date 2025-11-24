@@ -2,6 +2,7 @@ class TeeTimePosting < ApplicationRecord
   # Associations
   belongs_to :user
   belongs_to :group, optional: true
+  has_many :reservations, dependent: :destroy
 
   # Validations
   validates :user, presence: true

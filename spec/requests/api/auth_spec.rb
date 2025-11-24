@@ -56,7 +56,7 @@ RSpec.describe 'Api::Auth', type: :request do
         invalid_params = valid_params.deep_dup
         invalid_params[:user][:email] = ''
         post '/api/auth/signup', params: invalid_params, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to be_present
         expect(json['errors']['email_address']).to include("can't be blank")
@@ -67,7 +67,7 @@ RSpec.describe 'Api::Auth', type: :request do
         invalid_params[:user][:password] = '123'
         invalid_params[:user][:password_confirmation] = '123'
         post '/api/auth/signup', params: invalid_params, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']['password']).to include('is too short (minimum is 8 characters)')
       end
@@ -75,7 +75,7 @@ RSpec.describe 'Api::Auth', type: :request do
       it 'returns error when email is already taken' do
         create(:user, email_address: 'newuser@example.com')
         post '/api/auth/signup', params: valid_params, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']['email_address']).to include('has already been taken')
       end
@@ -84,7 +84,7 @@ RSpec.describe 'Api::Auth', type: :request do
         invalid_params = valid_params.deep_dup
         invalid_params[:user][:name] = ''
         post '/api/auth/signup', params: invalid_params, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']['name']).to include("can't be blank")
       end

@@ -18,7 +18,11 @@ class Avo::Resources::User < Avo::BaseResource
     field :password, as: :password, name: "Password", only_on: [:new, :edit], help: "Minimum 8 characters"
     field :password_confirmation, as: :password, name: "Password Confirmation", only_on: [:new, :edit]
     field :created_at, as: :date_time, readonly: true
+    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
     field :sessions, as: :has_many
+    field :group_memberships, as: :has_many
+    field :groups, as: :has_many, through: :group_memberships
     field :tee_time_postings, as: :has_many
+    field :reservations, as: :has_many
   end
 end

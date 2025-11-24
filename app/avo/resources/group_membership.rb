@@ -6,5 +6,6 @@ class Avo::Resources::GroupMembership < Avo::BaseResource
     field :user, as: :belongs_to, required: true, searchable: true
     field :group, as: :belongs_to, required: true, searchable: true
     field :created_at, as: :date_time, readonly: true, name: "Joined At"
+    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
   end
 end

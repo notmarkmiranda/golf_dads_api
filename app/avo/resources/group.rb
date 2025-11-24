@@ -12,6 +12,7 @@ class Avo::Resources::Group < Avo::BaseResource
     field :description, as: :textarea, hide_on: [:index]
     field :owner, as: :belongs_to, required: true, searchable: true
     field :created_at, as: :date_time, readonly: true
+    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
     field :group_memberships, as: :has_many
     field :members, as: :has_many, through: :group_memberships
     field :tee_time_postings, as: :has_many

@@ -97,13 +97,13 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 **Progress Overview:**
 - ✅ **Phase 1:** Foundation (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Models with TDD (11/15 steps) - **73% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Models with TDD (13/15 steps) - **87% Complete** ← Current Phase
 - ⏳ **Phase 3:** Authorization (0/5 steps) - **0% Complete**
 - ⏳ **Phase 4:** API Endpoints (0/8 steps) - **0% Complete**
 - ⏳ **Phase 5:** Polish & Deploy (0/5 steps) - **0% Complete**
 - 💡 **Phase 6:** Golf Course Integration (0/7 steps) - **Future Enhancement**
 
-**Total Project Progress: 17/40 steps (43% complete)**
+**Total Project Progress: 19/40 steps (48% complete)**
 
 ---
 
@@ -130,27 +130,27 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 | 7 | Add Google OAuth token verification service (8 passing tests) | ✅ Complete |
 | 8 | Create Google sign-in endpoint with specs | ✅ Complete |
 
-**Core Models (3/4 steps complete)**
+**Core Models (4/4 steps complete) ✅**
 
 | Step | Task | Status |
 |------|------|--------|
 | 9 | Generate Group model with TDD (13 passing specs) | ✅ Complete |
 | 10 | Generate GroupMembership model with TDD (12 passing specs) | ✅ Complete |
 | 11 | Generate TeeTimePosting model with TDD (25 passing specs) | ✅ Complete |
-| 12 | Generate Reservation model with TDD | 🔄 Next |
+| 12 | Generate Reservation model with TDD (17 passing specs) | ✅ Complete |
 
-**Admin & Documentation (3/3 steps complete)**
+**Admin & Documentation (2/3 steps complete)**
 
 | Step | Task | Status |
 |------|------|--------|
-| 13 | Create Avo resource for User | ✅ Complete |
+| 13 | Create Avo resources for all models | ✅ Complete |
 | 14 | Add password protection to Avo admin | ⏳ Pending |
 | 15 | Update documentation after each step | ✅ Ongoing |
 
 **Notes:**
-- All User Avo resources will be created alongside their models
+- All Avo resources have been created with comprehensive field definitions and associations
 - Documentation is updated after each major milestone
-- Password protection for Avo will be added after core models are complete
+- Password protection for Avo will be added after core models are complete (Step 14)
 
 ### Phase 3: Authorization ⏳ PLANNED
 
@@ -215,7 +215,7 @@ This project is being built in **5 phases** with **33 total steps** using Test-D
 
 ---
 
-**Overall Progress: Phase 2 of 5 (67% of Phase 2 complete)**
+**Overall Progress: Phase 2 of 5 (87% of Phase 2 complete)**
 
 ## API Endpoints
 
@@ -366,6 +366,10 @@ The User model supports both email/password and OAuth authentication.
 
 **Associations:**
 - `has_many :sessions` - User login sessions
+- `has_many :group_memberships` - Groups the user is a member of
+- `has_many :groups, through: :group_memberships` - Groups via memberships
+- `has_many :tee_time_postings` - Tee time postings created by the user
+- `has_many :reservations` - Reservations made by the user
 
 **Key Methods:**
 - `oauth_user?` - Returns true if user signed in via OAuth
@@ -492,6 +496,7 @@ The TeeTimePosting model represents an available tee time spot that users can sh
 **Associations:**
 - `belongs_to :user` - Creator of the posting
 - `belongs_to :group` (optional) - Group the posting is shared with
+- `has_many :reservations` - Reservations made for this posting
 
 **Validations:**
 - User, tee_time, course_name, available_spots presence
@@ -521,6 +526,81 @@ The TeeTimePosting model represents an available tee time spot that users can sh
 - Past tee times can be updated without validation errors
 - Postings are destroyed when user is destroyed
 - Postings are destroyed when group is destroyed
+
+### Reservation
+**Status:** ✅ Complete with 17 passing specs
+
+The Reservation model allows users to reserve available spots on tee time postings.
+
+**Attributes:**
+- `user_id` (bigint, required) - User making the reservation
+- `tee_time_posting_id` (bigint, required) - The tee time posting being reserved
+- `spots_reserved` (integer, required) - Number of spots being reserved
+- `created_at`, `updated_at` (datetime) - Timestamps
+
+**Associations:**
+- `belongs_to :user` - User making the reservation
+- `belongs_to :tee_time_posting` - The tee time posting being reserved
+
+**Validations:**
+- User, tee_time_posting, and spots_reserved presence
+- Spots_reserved must be greater than 0
+- User uniqueness scoped to tee_time_posting (can't reserve the same posting twice)
+- Spots_reserved cannot exceed available_spots on the tee time posting
+
+**Database Indexes:**
+- Composite unique index on `[user_id, tee_time_posting_id]`
+- Foreign key constraints to users and tee_time_postings tables
+
+**Cascading Deletes:**
+- Destroyed when user is destroyed
+- Destroyed when tee_time_posting is destroyed
+
+**Business Logic:**
+- Users can only make one reservation per tee time posting
+- Cannot reserve more spots than are available
+- Different users can reserve spots on the same posting
+- Same user can reserve spots on different postings
+
+## Avo Admin Resources
+
+All models have comprehensive Avo admin resources for data management. The admin dashboard is available at `/avo` (password protection pending).
+
+### User Resource
+**Features:**
+- Search by email or name
+- Display fields: ID, name, email, provider (badge), avatar
+- Password management for new/edit forms
+- Associated records: sessions, group memberships, groups, tee time postings, reservations
+- OAuth users show "Google" badge, password users show "Password" badge
+
+### Group Resource
+**Features:**
+- Search by name
+- Display fields: ID, name, description, owner
+- Associated records: group memberships, members (through memberships), tee time postings
+- Shows owner information with searchable lookup
+
+### GroupMembership Resource
+**Features:**
+- Display fields: ID, user, group, joined at (created_at)
+- Searchable user and group associations
+- Join table visualization for user-group relationships
+
+### TeeTimePosting Resource
+**Features:**
+- Search by course name or notes
+- Display fields: ID, user, group, tee time, course name, spots (available/total), notes
+- Associated records: reservations
+- Validation hints: minimum 1 spot for available and total spots
+- Optional group field for public vs. group postings
+
+### Reservation Resource
+**Features:**
+- Display fields: ID, user, tee time posting, spots reserved, reserved at (created_at)
+- Searchable user and tee time posting associations
+- Validation hints: minimum 1 spot, help text for spots reserved
+- Shows when reservation was made
 
 ## Development Approach
 

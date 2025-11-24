@@ -17,5 +17,6 @@ class Avo::Resources::TeeTimePosting < Avo::BaseResource
     field :notes, as: :textarea, hide_on: [:index]
     field :created_at, as: :date_time, readonly: true
     field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
+    field :reservations, as: :has_many
   end
 end
