@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
       resources :groups
       resources :tee_time_postings
+      resources :reservations
     end
   end
 
