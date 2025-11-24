@@ -312,7 +312,7 @@ end
 
 ### Authentication
 
-#### POST /api/auth/signup
+#### POST /api/v1/auth/signup
 **Status:** ✅ Complete with 9 passing specs
 
 Creates a new user account and returns a JWT token.
@@ -353,7 +353,7 @@ Creates a new user account and returns a JWT token.
 }
 ```
 
-#### POST /api/auth/login
+#### POST /api/v1/auth/login
 **Status:** ✅ Complete with 9 passing specs
 
 Authenticates a user and returns a JWT token.
@@ -393,7 +393,7 @@ Authenticates a user and returns a JWT token.
 - Returns JWT token valid for 24 hours
 - Token contains user_id and email in payload
 
-#### POST /api/auth/google
+#### POST /api/v1/auth/google
 **Status:** ✅ Complete with 10 passing specs
 
 Authenticates a user via Google Sign-In token and returns a JWT token.

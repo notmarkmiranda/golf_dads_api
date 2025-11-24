@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::Auth', type: :request do
-  describe 'POST /api/auth/signup' do
+  describe 'POST /api/v1/auth/signup' do
     let(:valid_params) do
       {
         user: {
@@ -16,12 +16,12 @@ RSpec.describe 'Api::Auth', type: :request do
     context 'with valid parameters' do
       it 'creates a new user' do
         expect {
-          post '/api/auth/signup', params: valid_params, as: :json
+          post '/api/v1/auth/signup', params: valid_params, as: :json
         }.to change(User, :count).by(1)
       end
 
       it 'returns a JWT token' do
-        post '/api/auth/signup', params: valid_params, as: :json
+        post '/api/v1/auth/signup', params: valid_params, as: :json
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
         expect(json['token']).to be_present
@@ -29,7 +29,7 @@ RSpec.describe 'Api::Auth', type: :request do
       end
 
       it 'returns user data' do
-        post '/api/auth/signup', params: valid_params, as: :json
+        post '/api/v1/auth/signup', params: valid_params, as: :json
         json = JSON.parse(response.body)
         expect(json['user']).to be_present
         expect(json['user']['email']).to eq('newuser@example.com')
@@ -38,13 +38,13 @@ RSpec.describe 'Api::Auth', type: :request do
       end
 
       it 'does not return password_digest' do
-        post '/api/auth/signup', params: valid_params, as: :json
+        post '/api/v1/auth/signup', params: valid_params, as: :json
         json = JSON.parse(response.body)
         expect(json['user']['password_digest']).to be_nil
       end
 
       it 'token contains user_id' do
-        post '/api/auth/signup', params: valid_params, as: :json
+        post '/api/v1/auth/signup', params: valid_params, as: :json
         json = JSON.parse(response.body)
         decoded = JsonWebToken.decode(json['token'])
         expect(decoded['user_id']).to eq(User.last.id)
@@ -55,7 +55,7 @@ RSpec.describe 'Api::Auth', type: :request do
       it 'returns error when email is missing' do
         invalid_params = valid_params.deep_dup
         invalid_params[:user][:email] = ''
-        post '/api/auth/signup', params: invalid_params, as: :json
+        post '/api/v1/auth/signup', params: invalid_params, as: :json
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']).to be_present
@@ -66,7 +66,7 @@ RSpec.describe 'Api::Auth', type: :request do
         invalid_params = valid_params.deep_dup
         invalid_params[:user][:password] = '123'
         invalid_params[:user][:password_confirmation] = '123'
-        post '/api/auth/signup', params: invalid_params, as: :json
+        post '/api/v1/auth/signup', params: invalid_params, as: :json
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']['password']).to include('is too short (minimum is 8 characters)')
@@ -74,7 +74,7 @@ RSpec.describe 'Api::Auth', type: :request do
 
       it 'returns error when email is already taken' do
         create(:user, email_address: 'newuser@example.com')
-        post '/api/auth/signup', params: valid_params, as: :json
+        post '/api/v1/auth/signup', params: valid_params, as: :json
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']['email_address']).to include('has already been taken')
@@ -83,7 +83,7 @@ RSpec.describe 'Api::Auth', type: :request do
       it 'returns error when name is missing' do
         invalid_params = valid_params.deep_dup
         invalid_params[:user][:name] = ''
-        post '/api/auth/signup', params: invalid_params, as: :json
+        post '/api/v1/auth/signup', params: invalid_params, as: :json
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
         expect(json['errors']['name']).to include("can't be blank")
@@ -91,7 +91,7 @@ RSpec.describe 'Api::Auth', type: :request do
     end
   end
 
-  describe 'POST /api/auth/login' do
+  describe 'POST /api/v1/auth/login' do
     let!(:user) { create(:user, email_address: 'user@example.com', password: 'password123') }
 
     let(:valid_params) do
@@ -103,7 +103,7 @@ RSpec.describe 'Api::Auth', type: :request do
 
     context 'with valid credentials' do
       it 'returns a JWT token' do
-        post '/api/auth/login', params: valid_params, as: :json
+        post '/api/v1/auth/login', params: valid_params, as: :json
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json['token']).to be_present
@@ -111,7 +111,7 @@ RSpec.describe 'Api::Auth', type: :request do
       end
 
       it 'returns user data' do
-        post '/api/auth/login', params: valid_params, as: :json
+        post '/api/v1/auth/login', params: valid_params, as: :json
         json = JSON.parse(response.body)
         expect(json['user']).to be_present
         expect(json['user']['email']).to eq('user@example.com')
@@ -120,48 +120,48 @@ RSpec.describe 'Api::Auth', type: :request do
       end
 
       it 'does not return password_digest' do
-        post '/api/auth/login', params: valid_params, as: :json
+        post '/api/v1/auth/login', params: valid_params, as: :json
         json = JSON.parse(response.body)
         expect(json['user']['password_digest']).to be_nil
       end
 
       it 'token contains user_id' do
-        post '/api/auth/login', params: valid_params, as: :json
+        post '/api/v1/auth/login', params: valid_params, as: :json
         json = JSON.parse(response.body)
         decoded = JsonWebToken.decode(json['token'])
         expect(decoded['user_id']).to eq(user.id)
       end
 
       it 'accepts case-insensitive email' do
-        post '/api/auth/login', params: { email: 'USER@EXAMPLE.COM', password: 'password123' }, as: :json
+        post '/api/v1/auth/login', params: { email: 'USER@EXAMPLE.COM', password: 'password123' }, as: :json
         expect(response).to have_http_status(:ok)
       end
     end
 
     context 'with invalid credentials' do
       it 'returns error with wrong password' do
-        post '/api/auth/login', params: { email: 'user@example.com', password: 'wrongpassword' }, as: :json
+        post '/api/v1/auth/login', params: { email: 'user@example.com', password: 'wrongpassword' }, as: :json
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Invalid email or password')
       end
 
       it 'returns error with non-existent email' do
-        post '/api/auth/login', params: { email: 'nonexistent@example.com', password: 'password123' }, as: :json
+        post '/api/v1/auth/login', params: { email: 'nonexistent@example.com', password: 'password123' }, as: :json
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Invalid email or password')
       end
 
       it 'returns error when email is missing' do
-        post '/api/auth/login', params: { password: 'password123' }, as: :json
+        post '/api/v1/auth/login', params: { password: 'password123' }, as: :json
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Invalid email or password')
       end
 
       it 'returns error when password is missing' do
-        post '/api/auth/login', params: { email: 'user@example.com' }, as: :json
+        post '/api/v1/auth/login', params: { email: 'user@example.com' }, as: :json
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Invalid email or password')
@@ -169,7 +169,7 @@ RSpec.describe 'Api::Auth', type: :request do
     end
   end
 
-  describe 'POST /api/auth/google' do
+  describe 'POST /api/v1/auth/google' do
     let(:valid_google_token) { 'valid_google_token_123' }
     let(:invalid_google_token) { 'invalid_google_token' }
 
@@ -198,12 +198,12 @@ RSpec.describe 'Api::Auth', type: :request do
       context 'when user does not exist' do
         it 'creates a new user' do
           expect {
-            post '/api/auth/google', params: { token: valid_google_token }, as: :json
+            post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           }.to change(User, :count).by(1)
         end
 
         it 'returns a JWT token' do
-          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           expect(response).to have_http_status(:ok)
           json = JSON.parse(response.body)
           expect(json['token']).to be_present
@@ -211,7 +211,7 @@ RSpec.describe 'Api::Auth', type: :request do
         end
 
         it 'returns user data with OAuth provider' do
-          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           json = JSON.parse(response.body)
           expect(json['user']['email']).to eq('googleuser@example.com')
           expect(json['user']['name']).to eq('Google User')
@@ -220,7 +220,7 @@ RSpec.describe 'Api::Auth', type: :request do
         end
 
         it 'does not set password_digest for OAuth user' do
-          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           user = User.last
           expect(user.password_digest).to be_nil
         end
@@ -238,19 +238,19 @@ RSpec.describe 'Api::Auth', type: :request do
 
         it 'does not create a new user' do
           expect {
-            post '/api/auth/google', params: { token: valid_google_token }, as: :json
+            post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           }.not_to change(User, :count)
         end
 
         it 'updates existing user information' do
-          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           user = User.find_by(provider: 'google', uid: 'google_user_123')
           expect(user.name).to eq('Google User')
           expect(user.avatar_url).to eq('https://example.com/avatar.jpg')
         end
 
         it 'returns a JWT token' do
-          post '/api/auth/google', params: { token: valid_google_token }, as: :json
+          post '/api/v1/auth/google', params: { token: valid_google_token }, as: :json
           expect(response).to have_http_status(:ok)
           json = JSON.parse(response.body)
           expect(json['token']).to be_present
@@ -264,7 +264,7 @@ RSpec.describe 'Api::Auth', type: :request do
       end
 
       it 'returns error' do
-        post '/api/auth/google', params: { token: invalid_google_token }, as: :json
+        post '/api/v1/auth/google', params: { token: invalid_google_token }, as: :json
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Invalid Google token')
@@ -272,14 +272,14 @@ RSpec.describe 'Api::Auth', type: :request do
 
       it 'does not create a user' do
         expect {
-          post '/api/auth/google', params: { token: invalid_google_token }, as: :json
+          post '/api/v1/auth/google', params: { token: invalid_google_token }, as: :json
         }.not_to change(User, :count)
       end
     end
 
     context 'with missing token' do
       it 'returns error' do
-        post '/api/auth/google', params: {}, as: :json
+        post '/api/v1/auth/google', params: {}, as: :json
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Invalid Google token')

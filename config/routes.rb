@@ -4,13 +4,15 @@ Rails.application.routes.draw do
   mount_avo
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # API routes
+  # API routes - v1
   namespace :api do
-    post 'auth/signup', to: 'auth#signup'
-    post 'auth/login', to: 'auth#login'
-    post 'auth/google', to: 'auth#google'
+    namespace :v1 do
+      post 'auth/signup', to: 'auth#signup'
+      post 'auth/login', to: 'auth#login'
+      post 'auth/google', to: 'auth#google'
 
-    resources :groups
+      resources :groups
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

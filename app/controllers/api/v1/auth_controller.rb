@@ -1,8 +1,9 @@
 module Api
-  class AuthController < Api::BaseController
-    skip_before_action :authenticate_request, only: [:signup, :login, :google]
+  module V1
+    class AuthController < Api::BaseController
+      skip_before_action :authenticate_request, only: [:signup, :login, :google]
 
-    # POST /api/auth/signup
+      # POST /api/v1/auth/signup
     def signup
       user = User.new(signup_params)
 
@@ -19,7 +20,7 @@ module Api
       end
     end
 
-    # POST /api/auth/login
+      # POST /api/v1/auth/login
     def login
       user = User.find_by(email_address: params[:email]&.strip&.downcase)
 
@@ -36,7 +37,7 @@ module Api
       end
     end
 
-    # POST /api/auth/google
+      # POST /api/v1/auth/google
     def google
       google_token = params[:token]
       payload = GoogleTokenVerifier.verify(google_token)
@@ -74,6 +75,7 @@ module Api
         avatar_url: user.avatar_url,
         provider: user.provider
       }
+      end
     end
   end
 end

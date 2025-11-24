@@ -1,22 +1,23 @@
 module Api
-  class GroupsController < Api::BaseController
+  module V1
+    class GroupsController < Api::BaseController
     before_action :set_group, only: [:show, :update, :destroy]
 
-    # GET /api/groups
-    def index
+      # GET /api/v1/groups
+      def index
       authorize Group
       @groups = policy_scope(Group)
       render json: { groups: @groups }, status: :ok
     end
 
-    # GET /api/groups/:id
-    def show
+      # GET /api/v1/groups/:id
+      def show
       authorize @group
       render json: { group: @group }, status: :ok
     end
 
-    # POST /api/groups
-    def create
+      # POST /api/v1/groups
+      def create
       authorize Group
       @group = current_user.owned_groups.build(group_params)
 
@@ -27,8 +28,8 @@ module Api
       end
     end
 
-    # PATCH/PUT /api/groups/:id
-    def update
+      # PATCH/PUT /api/v1/groups/:id
+      def update
       authorize @group
 
       if @group.update(group_params)
@@ -38,23 +39,24 @@ module Api
       end
     end
 
-    # DELETE /api/groups/:id
-    def destroy
+      # DELETE /api/v1/groups/:id
+      def destroy
       authorize @group
       @group.destroy
       head :no_content
     end
 
-    private
+      private
 
-    def set_group
-      @group = Group.find(params[:id])
-    rescue ActiveRecord::RecordNotFound
-      render json: { error: 'Group not found' }, status: :not_found
-    end
+      def set_group
+        @group = Group.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'Group not found' }, status: :not_found
+      end
 
-    def group_params
-      params.require(:group).permit(:name, :description)
+      def group_params
+        params.require(:group).permit(:name, :description)
+      end
     end
   end
 end

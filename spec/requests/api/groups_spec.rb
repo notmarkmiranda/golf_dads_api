@@ -6,7 +6,7 @@ RSpec.describe 'Api::Groups', type: :request do
   let(:token) { user.generate_jwt }
   let(:other_token) { other_user.generate_jwt }
 
-  describe 'GET /api/groups' do
+  describe 'GET /api/v1/groups' do
     let!(:owned_group) { create(:group, owner: user, name: 'My Group') }
     let!(:member_group) { create(:group, owner: other_user, name: 'Member Group') }
     let!(:other_group) { create(:group, owner: other_user, name: 'Other Group') }
@@ -17,7 +17,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when authenticated' do
       it 'returns groups user owns or is a member of' do
-        get '/api/groups', headers: { 'Authorization' => "Bearer #{token}" }
+        get '/api/v1/groups', headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
@@ -29,7 +29,7 @@ RSpec.describe 'Api::Groups', type: :request do
       end
 
       it 'returns group details' do
-        get '/api/groups', headers: { 'Authorization' => "Bearer #{token}" }
+        get '/api/v1/groups', headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
@@ -45,7 +45,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when not authenticated' do
       it 'returns unauthorized' do
-        get '/api/groups'
+        get '/api/v1/groups'
 
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
@@ -54,12 +54,12 @@ RSpec.describe 'Api::Groups', type: :request do
     end
   end
 
-  describe 'GET /api/groups/:id' do
+  describe 'GET /api/v1/groups/:id' do
     let(:group) { create(:group, owner: user, name: 'Test Group', description: 'Test Description') }
 
     context 'when user is the owner' do
       it 'returns the group' do
-        get "/api/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        get "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
@@ -78,7 +78,7 @@ RSpec.describe 'Api::Groups', type: :request do
       end
 
       it 'returns the group' do
-        get "/api/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        get "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
@@ -90,7 +90,7 @@ RSpec.describe 'Api::Groups', type: :request do
       let(:group) { create(:group, owner: other_user) }
 
       it 'returns forbidden' do
-        get "/api/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        get "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:forbidden)
         json = JSON.parse(response.body)
@@ -100,7 +100,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when group does not exist' do
       it 'returns not found' do
-        get '/api/groups/99999', headers: { 'Authorization' => "Bearer #{token}" }
+        get '/api/v1/groups/99999', headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:not_found)
         json = JSON.parse(response.body)
@@ -110,14 +110,14 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when not authenticated' do
       it 'returns unauthorized' do
-        get "/api/groups/#{group.id}"
+        get "/api/v1/groups/#{group.id}"
 
         expect(response).to have_http_status(:unauthorized)
       end
     end
   end
 
-  describe 'POST /api/groups' do
+  describe 'POST /api/v1/groups' do
     context 'with valid parameters' do
       let(:valid_params) do
         {
@@ -130,7 +130,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
       it 'creates a new group' do
         expect {
-          post '/api/groups', params: valid_params, headers: { 'Authorization' => "Bearer #{token}" }
+          post '/api/v1/groups', params: valid_params, headers: { 'Authorization' => "Bearer #{token}" }
         }.to change(Group, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -141,7 +141,7 @@ RSpec.describe 'Api::Groups', type: :request do
       end
 
       it 'creates group without description' do
-        post '/api/groups',
+        post '/api/v1/groups',
              params: { group: { name: 'Simple Group' } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -154,7 +154,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'with invalid parameters' do
       it 'returns error when name is missing' do
-        post '/api/groups',
+        post '/api/v1/groups',
              params: { group: { description: 'No name' } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -166,7 +166,7 @@ RSpec.describe 'Api::Groups', type: :request do
       it 'returns error when name is duplicate for same owner' do
         create(:group, owner: user, name: 'Duplicate Group')
 
-        post '/api/groups',
+        post '/api/v1/groups',
              params: { group: { name: 'Duplicate Group' } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -178,19 +178,19 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when not authenticated' do
       it 'returns unauthorized' do
-        post '/api/groups', params: { group: { name: 'New Group' } }
+        post '/api/v1/groups', params: { group: { name: 'New Group' } }
 
         expect(response).to have_http_status(:unauthorized)
       end
     end
   end
 
-  describe 'PATCH /api/groups/:id' do
+  describe 'PATCH /api/v1/groups/:id' do
     let(:group) { create(:group, owner: user, name: 'Original Name', description: 'Original Description') }
 
     context 'when user is the owner' do
       it 'updates the group' do
-        patch "/api/groups/#{group.id}",
+        patch "/api/v1/groups/#{group.id}",
               params: { group: { name: 'Updated Name', description: 'Updated Description' } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -205,7 +205,7 @@ RSpec.describe 'Api::Groups', type: :request do
       end
 
       it 'updates only provided fields' do
-        patch "/api/groups/#{group.id}",
+        patch "/api/v1/groups/#{group.id}",
               params: { group: { name: 'New Name Only' } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -218,7 +218,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'with invalid parameters' do
       it 'returns error when name is blank' do
-        patch "/api/groups/#{group.id}",
+        patch "/api/v1/groups/#{group.id}",
               params: { group: { name: '' } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -230,7 +230,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when user is not the owner' do
       it 'returns forbidden' do
-        patch "/api/groups/#{group.id}",
+        patch "/api/v1/groups/#{group.id}",
               params: { group: { name: 'Hacked Name' } },
               headers: { 'Authorization' => "Bearer #{other_token}" }
 
@@ -242,7 +242,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when group does not exist' do
       it 'returns not found' do
-        patch '/api/groups/99999',
+        patch '/api/v1/groups/99999',
               params: { group: { name: 'New Name' } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -252,20 +252,20 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when not authenticated' do
       it 'returns unauthorized' do
-        patch "/api/groups/#{group.id}", params: { group: { name: 'New Name' } }
+        patch "/api/v1/groups/#{group.id}", params: { group: { name: 'New Name' } }
 
         expect(response).to have_http_status(:unauthorized)
       end
     end
   end
 
-  describe 'DELETE /api/groups/:id' do
+  describe 'DELETE /api/v1/groups/:id' do
     let!(:group) { create(:group, owner: user, name: 'Group to Delete') }
 
     context 'when user is the owner' do
       it 'deletes the group' do
         expect {
-          delete "/api/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+          delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
         }.to change(Group, :count).by(-1)
 
         expect(response).to have_http_status(:no_content)
@@ -276,7 +276,7 @@ RSpec.describe 'Api::Groups', type: :request do
     context 'when user is not the owner' do
       it 'returns forbidden' do
         expect {
-          delete "/api/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{other_token}" }
+          delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{other_token}" }
         }.not_to change(Group, :count)
 
         expect(response).to have_http_status(:forbidden)
@@ -287,7 +287,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when group does not exist' do
       it 'returns not found' do
-        delete '/api/groups/99999', headers: { 'Authorization' => "Bearer #{token}" }
+        delete '/api/v1/groups/99999', headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:not_found)
       end
@@ -295,7 +295,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
     context 'when not authenticated' do
       it 'returns unauthorized' do
-        delete "/api/groups/#{group.id}"
+        delete "/api/v1/groups/#{group.id}"
 
         expect(response).to have_http_status(:unauthorized)
       end
