@@ -42,15 +42,21 @@ A native iOS application built with SwiftUI that consumes the Golf Dads API. Use
 
 This project will be built in **6 phases** with **45 total steps** using Test-Driven Development (TDD).
 
+**🔔 Important: Documentation Updates**
+- This execution plan should be updated **after completing each step**
+- Update progress percentages, test counts, and deliverables sections
+- Commit documentation changes along with code changes
+- Keep the Progress Overview section current at all times
+
 **Progress Overview:**
 - ✅ **Phase 1:** Project Setup & Configuration (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Services & Authentication (0/10 steps) - **0% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Services & Authentication (3/10 steps) - **30% Complete** ← Current Phase
 - 💡 **Phase 3:** Models & API Client (0/8 steps)
 - 💡 **Phase 4:** Authentication Flows (0/8 steps)
 - 💡 **Phase 5:** Main Features (0/10 steps)
 - 💡 **Phase 6:** Polish & App Store (0/3 steps)
 
-**Total Project Progress: 6/45 steps (13% complete)**
+**Total Project Progress: 9/45 steps (20% complete)**
 
 ---
 
@@ -81,13 +87,13 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 ---
 
-### Phase 2: Core Services & Authentication 🚧 (0/10 steps)
+### Phase 2: Core Services & Authentication 🚧 (3/10 steps - 30% complete)
 
 | Step | Task | Status | Tests |
 |------|------|--------|-------|
-| 7 | Create `APIConfiguration` with base URL and environment handling | ⏳ Pending | Unit tests |
-| 8 | Create `KeychainService` protocol and implementation for token storage | ⏳ Pending | Unit tests |
-| 9 | Create `APIError` enum with proper error handling | ⏳ Pending | Unit tests |
+| 7 | Create `APIConfiguration` with base URL and environment handling | ✅ Complete | 7 tests passing |
+| 8 | Create `KeychainService` protocol and implementation for token storage | ✅ Complete | 16 tests passing |
+| 9 | Create `APIError` enum with proper error handling | ✅ Complete | Integrated |
 | 10 | Create `NetworkService` protocol for HTTP requests | ⏳ Pending | Unit tests |
 | 11 | Implement `NetworkService` with URLSession, JWT token injection, error handling | ⏳ Pending | Unit tests |
 | 12 | Create mock `NetworkService` for testing | ⏳ Pending | Unit tests |
@@ -96,6 +102,32 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 | 15 | Create `AuthenticationManager` to manage auth state (published properties) | ⏳ Pending | Unit tests |
 | 16 | Write integration tests for auth flow | ⏳ Pending | Integration tests |
 
+**Completed Deliverables:**
+
+✅ **APIConfiguration.swift** (Step 7)
+- Environment detection (Development/Production)
+- Base URL configuration with simulator/device detection
+- Comprehensive endpoint enum for all API routes
+- Google Client ID configuration support
+- 7 passing tests
+
+✅ **KeychainService.swift** (Step 8)
+- Protocol-based design (`KeychainServiceProtocol`)
+- Secure JWT token storage using KeychainAccess library
+- Support for access and refresh tokens
+- `MockKeychainService` for testing
+- Security: `whenUnlockedThisDeviceOnly`, no iCloud sync
+- 16 passing tests
+
+✅ **APIError.swift** (Step 9)
+- Comprehensive error types (network, HTTP, data, auth, config)
+- User-friendly error messages
+- Factory methods for URLError and HTTP responses
+- Retry and re-authentication detection
+- Validation error formatting
+
+**Total Tests Passing: 23/23** (7 APIConfiguration + 16 KeychainService)
+
 **Testing Strategy:**
 - **Unit tests** for each service with mocked dependencies
 - **Protocol-based design** for easy mocking
@@ -103,12 +135,12 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 - **Test error scenarios** (network failures, invalid tokens, etc.)
 
 **Key Files:**
-- `Services/APIConfiguration.swift`
-- `Services/KeychainService.swift`
-- `Services/NetworkService.swift`
-- `Services/AuthenticationService.swift`
-- `Managers/AuthenticationManager.swift`
-- `Tests/Services/` - Unit tests for all services
+- ✅ `Services/APIConfiguration.swift` + tests
+- ✅ `Services/KeychainService.swift` + tests
+- ✅ `Utils/APIError.swift`
+- ⏳ `Services/NetworkService.swift` (next)
+- ⏳ `Services/AuthenticationService.swift`
+- ⏳ `Managers/AuthenticationManager.swift`
 
 ---
 
