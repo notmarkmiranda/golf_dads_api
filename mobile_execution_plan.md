@@ -50,13 +50,13 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 **Progress Overview:**
 - ✅ **Phase 1:** Project Setup & Configuration (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Services & Authentication (3/10 steps) - **30% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Services & Authentication (7/10 steps) - **70% Complete** ← Current Phase
 - 💡 **Phase 3:** Models & API Client (0/8 steps)
 - 💡 **Phase 4:** Authentication Flows (0/8 steps)
 - 💡 **Phase 5:** Main Features (0/10 steps)
 - 💡 **Phase 6:** Polish & App Store (0/3 steps)
 
-**Total Project Progress: 9/45 steps (20% complete)**
+**Total Project Progress: 13/45 steps (29% complete)**
 
 ---
 
@@ -87,18 +87,18 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 ---
 
-### Phase 2: Core Services & Authentication 🚧 (3/10 steps - 30% complete)
+### Phase 2: Core Services & Authentication 🚧 (7/10 steps - 70% complete)
 
 | Step | Task | Status | Tests |
 |------|------|--------|-------|
 | 7 | Create `APIConfiguration` with base URL and environment handling | ✅ Complete | 7 tests passing |
 | 8 | Create `KeychainService` protocol and implementation for token storage | ✅ Complete | 16 tests passing |
 | 9 | Create `APIError` enum with proper error handling | ✅ Complete | Integrated |
-| 10 | Create `NetworkService` protocol for HTTP requests | ⏳ Pending | Unit tests |
-| 11 | Implement `NetworkService` with URLSession, JWT token injection, error handling | ⏳ Pending | Unit tests |
-| 12 | Create mock `NetworkService` for testing | ⏳ Pending | Unit tests |
-| 13 | Create `AuthenticationService` protocol for auth operations | ⏳ Pending | Unit tests |
-| 14 | Implement `AuthenticationService` (signup, login, Google OAuth, token refresh) | ⏳ Pending | Unit tests |
+| 10 | Create `NetworkService` protocol for HTTP requests | ✅ Complete | 12 tests passing |
+| 11 | Implement `NetworkService` with URLSession, JWT token injection, error handling | ✅ Complete | (in step 10) |
+| 12 | Create mock `NetworkService` for testing | ✅ Complete | (in step 10) |
+| 13 | Create `AuthenticationService` protocol for auth operations | ✅ Complete | 13 tests passing |
+| 14 | Implement `AuthenticationService` (signup, login, Google OAuth, token refresh) | ✅ Complete | (in step 13) |
 | 15 | Create `AuthenticationManager` to manage auth state (published properties) | ⏳ Pending | Unit tests |
 | 16 | Write integration tests for auth flow | ⏳ Pending | Integration tests |
 
@@ -126,7 +126,35 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 - Retry and re-authentication detection
 - Validation error formatting
 
-**Total Tests Passing: 23/23** (7 APIConfiguration + 16 KeychainService)
+✅ **NetworkService.swift** (Steps 10-12)
+- Protocol-based design (`NetworkServiceProtocol`) for testability
+- URLSession with async/await and custom URLSessionProtocol wrapper
+- Automatic JWT token injection from KeychainService
+- Comprehensive error handling with APIError conversion
+- JSON encoding/decoding with snake_case conversion (`.convertFromSnakeCase`)
+- Support for GET, POST, PUT, PATCH, DELETE methods
+- `MockNetworkService` for testing with configurable responses
+- 12 passing tests
+
+✅ **AuthenticationService.swift** (Steps 13-14)
+- Protocol-based design (`AuthenticationServiceProtocol`)
+- Signup with email/password (parameters wrapped in `user` key)
+- Login with email/password (parameters at root level)
+- Google Sign-In with ID token
+- Get current user endpoint support
+- Automatic token storage to keychain
+- `isLoggedIn` and `currentToken` helper properties
+- 13 passing tests
+- ✅ Verified working against local Rails API (http://localhost:3000)
+
+✅ **TestLoginView.swift** (Manual Testing)
+- Temporary testing UI for authentication flows
+- Tests signup, login, and logout against local API
+- Displays current user information
+- Real-time API connection status
+- Note: This is a temporary testing view, final UI comes in Phase 4
+
+**Total Tests Passing: 48/48** (7 APIConfiguration + 16 KeychainService + 12 NetworkService + 13 AuthenticationService)
 
 **Testing Strategy:**
 - **Unit tests** for each service with mocked dependencies
@@ -136,11 +164,15 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 **Key Files:**
 - ✅ `Services/APIConfiguration.swift` + tests
+- ✅ `Services/APIError.swift`
 - ✅ `Services/KeychainService.swift` + tests
-- ✅ `Utils/APIError.swift`
-- ⏳ `Services/NetworkService.swift` (next)
-- ⏳ `Services/AuthenticationService.swift`
-- ⏳ `Managers/AuthenticationManager.swift`
+- ✅ `Services/NetworkService.swift` + tests + MockNetworkService
+- ✅ `Services/AuthenticationService.swift` + tests
+- ✅ `Views/TestLoginView.swift` (temporary testing UI)
+
+**Next Steps:**
+- ⏳ `Managers/AuthenticationManager.swift` (Step 15)
+- ⏳ Integration tests for full auth flow (Step 16)
 
 ---
 
