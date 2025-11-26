@@ -50,13 +50,13 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 **Progress Overview:**
 - ✅ **Phase 1:** Project Setup & Configuration (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Services & Authentication (7/10 steps) - **70% Complete** ← Current Phase
+- 🚧 **Phase 2:** Core Services & Authentication (8/10 steps) - **80% Complete** ← Current Phase
 - 💡 **Phase 3:** Models & API Client (0/8 steps)
 - 💡 **Phase 4:** Authentication Flows (0/8 steps)
 - 💡 **Phase 5:** Main Features (0/10 steps)
 - 💡 **Phase 6:** Polish & App Store (0/3 steps)
 
-**Total Project Progress: 13/45 steps (29% complete)**
+**Total Project Progress: 14/45 steps (31% complete)**
 
 ---
 
@@ -87,7 +87,7 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 ---
 
-### Phase 2: Core Services & Authentication 🚧 (7/10 steps - 70% complete)
+### Phase 2: Core Services & Authentication 🚧 (8/10 steps - 80% complete)
 
 | Step | Task | Status | Tests |
 |------|------|--------|-------|
@@ -99,7 +99,7 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 | 12 | Create mock `NetworkService` for testing | ✅ Complete | (in step 10) |
 | 13 | Create `AuthenticationService` protocol for auth operations | ✅ Complete | 13 tests passing |
 | 14 | Implement `AuthenticationService` (signup, login, Google OAuth, token refresh) | ✅ Complete | (in step 13) |
-| 15 | Create `AuthenticationManager` to manage auth state (published properties) | ⏳ Pending | Unit tests |
+| 15 | Create `AuthenticationManager` to manage auth state (published properties) | ✅ Complete | 16 tests passing |
 | 16 | Write integration tests for auth flow | ⏳ Pending | Integration tests |
 
 **Completed Deliverables:**
@@ -147,14 +147,32 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 - 13 passing tests
 - ✅ Verified working against local Rails API (http://localhost:3000)
 
+✅ **AuthenticationManager.swift** (Step 15)
+- @Observable class for SwiftUI reactive state management
+- Manages currentUser, isAuthenticated, isLoading, errorMessage
+- Methods: signUp(), login(), googleSignIn(), logout(), refreshCurrentUser()
+- Converts API errors to user-friendly messages via APIError.userMessage
+- `MockAuthenticationService` for testing
+- 16 passing tests
+
 ✅ **TestLoginView.swift** (Manual Testing)
 - Temporary testing UI for authentication flows
-- Tests signup, login, and logout against local API
+- Tests signup, login, and logout against local/production API
 - Displays current user information
 - Real-time API connection status
 - Note: This is a temporary testing view, final UI comes in Phase 4
 
-**Total Tests Passing: 48/48** (7 APIConfiguration + 16 KeychainService + 12 NetworkService + 13 AuthenticationService)
+✅ **Production Device Support**
+- Physical devices default to production: golf-dads-api.onrender.com
+- Simulators use localhost:3000 for local development
+- Override instructions for local device testing
+
+**Total Tests Passing: 64/64 (100%)** ✅
+- 7 APIConfiguration
+- 16 KeychainService
+- 12 NetworkService
+- 13 AuthenticationService
+- 16 AuthenticationManager
 
 **Testing Strategy:**
 - **Unit tests** for each service with mocked dependencies
@@ -164,15 +182,16 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 **Key Files:**
 - ✅ `Services/APIConfiguration.swift` + tests
-- ✅ `Services/APIError.swift`
+- ✅ `Services/APIError.swift` (enhanced with actual error messages)
 - ✅ `Services/KeychainService.swift` + tests
 - ✅ `Services/NetworkService.swift` + tests + MockNetworkService
-- ✅ `Services/AuthenticationService.swift` + tests
+- ✅ `Services/AuthenticationService.swift` + tests + MockAuthenticationService
+- ✅ `Managers/AuthenticationManager.swift` + tests
 - ✅ `Views/TestLoginView.swift` (temporary testing UI)
 
 **Next Steps:**
-- ⏳ `Managers/AuthenticationManager.swift` (Step 15)
 - ⏳ Integration tests for full auth flow (Step 16)
+- ⏳ Phase 3: Models & API Client (8 steps)
 
 ---
 
