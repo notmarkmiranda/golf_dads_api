@@ -50,13 +50,15 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 **Progress Overview:**
 - ✅ **Phase 1:** Project Setup & Configuration (6/6 steps) - **100% Complete**
-- 🚧 **Phase 2:** Core Services & Authentication (8/10 steps) - **80% Complete** ← Current Phase
+- ✅ **Phase 2:** Core Services & Authentication (8/9 steps) - **89% Complete**
 - 💡 **Phase 3:** Models & API Client (0/8 steps)
-- 💡 **Phase 4:** Authentication Flows (0/8 steps)
+- 🚧 **Phase 4:** Authentication Flows (0/8 steps) ← Current Phase
 - 💡 **Phase 5:** Main Features (0/10 steps)
-- 💡 **Phase 6:** Polish & App Store (0/3 steps)
+- 💡 **Phase 6:** Polish & App Store (0/4 steps)
 
 **Total Project Progress: 14/45 steps (31% complete)**
+
+**Note:** Integration tests (original Step 16) moved to Phase 6 for end-to-end testing after UI is built.
 
 ---
 
@@ -87,7 +89,7 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 
 ---
 
-### Phase 2: Core Services & Authentication 🚧 (8/10 steps - 80% complete)
+### Phase 2: Core Services & Authentication ✅ COMPLETE (8/9 steps - 89% complete)
 
 | Step | Task | Status | Tests |
 |------|------|--------|-------|
@@ -100,7 +102,7 @@ This project will be built in **6 phases** with **45 total steps** using Test-Dr
 | 13 | Create `AuthenticationService` protocol for auth operations | ✅ Complete | 13 tests passing |
 | 14 | Implement `AuthenticationService` (signup, login, Google OAuth, token refresh) | ✅ Complete | (in step 13) |
 | 15 | Create `AuthenticationManager` to manage auth state (published properties) | ✅ Complete | 16 tests passing |
-| 16 | Write integration tests for auth flow | ⏳ Pending | Integration tests |
+| ~~16~~ | ~~Write integration tests for auth flow~~ | 🔄 Moved to Phase 6 | Integration tests |
 
 **Completed Deliverables:**
 
