@@ -30,8 +30,8 @@ class TeeTimePostingPolicy < ApplicationPolicy
     def resolve
       if user.present?
         # Return public postings + postings in user's groups
-        scope.left_joins(group: :group_memberships)
-             .where('tee_time_postings.group_id IS NULL OR group_memberships.user_id = ? OR groups.owner_id = ?',
+        scope.left_joins(groups: :group_memberships)
+             .where('groups_tee_time_postings.group_id IS NULL OR group_memberships.user_id = ? OR groups.owner_id = ?',
                     user.id, user.id)
              .distinct
       else
@@ -47,13 +47,13 @@ class TeeTimePostingPolicy < ApplicationPolicy
   end
 
   def public_posting?
-    record.group_id.nil?
+    record.groups.empty?
   end
 
   def member_of_group?
-    return false if record.group_id.nil?
+    return false if record.groups.empty?
 
-    record.group.members.include?(user) || record.group.owner == user
+    record.groups.any? { |group| group.members.include?(user) || group.owner == user }
   end
 
   def admin?
