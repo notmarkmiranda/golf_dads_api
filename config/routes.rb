@@ -11,7 +11,18 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'auth#login'
       post 'auth/google', to: 'auth#google'
 
-      resources :groups
+      resources :groups do
+        get 'invitations', to: 'group_invitations#index_for_group'
+        post 'invitations', to: 'group_invitations#create'
+      end
+
+      resources :group_invitations, only: [:index, :show] do
+        member do
+          post 'accept'
+          post 'reject'
+        end
+      end
+
       resources :tee_time_postings do
         collection do
           get 'my_postings'

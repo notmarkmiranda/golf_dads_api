@@ -10,107 +10,149 @@ if Rails.env.development?
   Reservation.destroy_all
   ActiveRecord::Base.connection.execute("DELETE FROM groups_tee_time_postings")
   TeeTimePosting.destroy_all
+  GroupInvitation.destroy_all
   GroupMembership.destroy_all
   Group.destroy_all
   User.destroy_all
 end
 
 # Create admin user
-puts "👤 Creating admin user..."
-admin = User.create!(
-  email_address: 'notmarkmiranda@gmail.com',
-  name: 'Admin User',
-  password: 'password1234',
-  password_confirmation: 'password1234',
-  admin: true
-)
-puts "✅ Admin user created: #{admin.email_address}"
+puts "👤 Creating or finding admin user..."
+admin = User.find_or_create_by!(email_address: 'notmarkmiranda@gmail.com') do |user|
+  user.name = 'Admin User'
+  user.password = 'password1234'
+  user.password_confirmation = 'password1234'
+  user.admin = true
+end
+puts "✅ Admin user ready: #{admin.email_address}"
 
 # Create regular users
-puts "👥 Creating regular users..."
+puts "👥 Creating or finding regular users..."
 users = []
 
-users << User.create!(
-  email_address: 'john@example.com',
-  name: 'John Smith',
-  password: 'password1234',
-  password_confirmation: 'password1234'
-)
+users << User.find_or_create_by!(email_address: 'john@example.com') do |user|
+  user.name = 'John Smith'
+  user.password = 'password1234'
+  user.password_confirmation = 'password1234'
+end
 
-users << User.create!(
-  email_address: 'jane@example.com',
-  name: 'Jane Doe',
-  password: 'password1234',
-  password_confirmation: 'password1234'
-)
+users << User.find_or_create_by!(email_address: 'jane@example.com') do |user|
+  user.name = 'Jane Doe'
+  user.password = 'password1234'
+  user.password_confirmation = 'password1234'
+end
 
-users << User.create!(
-  email_address: 'mike@example.com',
-  name: 'Mike Johnson',
-  password: 'password1234',
-  password_confirmation: 'password1234'
-)
+users << User.find_or_create_by!(email_address: 'mike@example.com') do |user|
+  user.name = 'Mike Johnson'
+  user.password = 'password1234'
+  user.password_confirmation = 'password1234'
+end
 
-users << User.create!(
-  email_address: 'sarah@example.com',
-  name: 'Sarah Williams',
-  password: 'password1234',
-  password_confirmation: 'password1234'
-)
+users << User.find_or_create_by!(email_address: 'sarah@example.com') do |user|
+  user.name = 'Sarah Williams'
+  user.password = 'password1234'
+  user.password_confirmation = 'password1234'
+end
 
-puts "✅ Created #{users.count} regular users"
+puts "✅ Users ready: #{users.count} regular users"
 
 # Create groups
-puts "👨‍👩‍👧‍👦 Creating groups..."
+puts "👨‍👩‍👧‍👦 Creating or finding groups..."
 groups = []
 
 # John's groups
-weekend_warriors = users[0].owned_groups.create!(
-  name: 'Weekend Warriors',
-  description: 'Saturday morning golf group'
-)
+weekend_warriors = Group.find_or_create_by!(name: 'Weekend Warriors', owner: users[0]) do |group|
+  group.description = 'Saturday morning golf group'
+end
 groups << weekend_warriors
 
-early_birds = users[0].owned_groups.create!(
-  name: 'Early Birds',
-  description: 'We tee off before 7am!'
-)
+early_birds = Group.find_or_create_by!(name: 'Early Birds', owner: users[0]) do |group|
+  group.description = 'We tee off before 7am!'
+end
 groups << early_birds
 
 # Jane's groups
-ladies_league = users[1].owned_groups.create!(
-  name: 'Ladies League',
-  description: 'Weekly ladies golf group'
-)
+ladies_league = Group.find_or_create_by!(name: 'Ladies League', owner: users[1]) do |group|
+  group.description = 'Weekly ladies golf group'
+end
 groups << ladies_league
 
 # Mike's groups
-corporate_crew = users[2].owned_groups.create!(
-  name: 'Corporate Crew',
-  description: 'After-work golf rounds'
-)
+corporate_crew = Group.find_or_create_by!(name: 'Corporate Crew', owner: users[2]) do |group|
+  group.description = 'After-work golf rounds'
+end
 groups << corporate_crew
 
-puts "✅ Created #{groups.count} groups"
+puts "✅ Groups ready: #{groups.count} groups"
 
 # Add group members
 puts "🤝 Adding group members..."
 memberships = []
 
 # Weekend Warriors members (John's group)
-memberships << GroupMembership.create!(user: users[1], group: weekend_warriors) # Jane joins
-memberships << GroupMembership.create!(user: users[2], group: weekend_warriors) # Mike joins
+memberships << GroupMembership.find_or_create_by!(user: users[1], group: weekend_warriors) # Jane joins
+memberships << GroupMembership.find_or_create_by!(user: users[2], group: weekend_warriors) # Mike joins
 
 # Ladies League members (Jane's group)
-memberships << GroupMembership.create!(user: users[3], group: ladies_league) # Sarah joins
+memberships << GroupMembership.find_or_create_by!(user: users[3], group: ladies_league) # Sarah joins
 
 # Corporate Crew members (Mike's group)
-memberships << GroupMembership.create!(user: users[0], group: corporate_crew) # John joins
-memberships << GroupMembership.create!(user: users[3], group: corporate_crew) # Sarah joins
+memberships << GroupMembership.find_or_create_by!(user: users[0], group: corporate_crew) # John joins
+memberships << GroupMembership.find_or_create_by!(user: users[3], group: corporate_crew) # Sarah joins
 
-puts "✅ Created #{memberships.count} group memberships"
+puts "✅ Memberships ready: #{memberships.count} group memberships"
 
-# Create tee time postings
+# Create group invitations
+puts "✉️  Creating or finding group invitations..."
+invitations = []
+
+# Pending invitations
+invitations << GroupInvitation.find_or_create_by!(
+  group: weekend_warriors,
+  invitee_email: 'bob@example.com',
+  status: 'pending'
+) do |invitation|
+  invitation.inviter = users[0] # John invites
+end
+
+invitations << GroupInvitation.find_or_create_by!(
+  group: early_birds,
+  invitee_email: users[3].email_address, # Sarah (not yet a member)
+  status: 'pending'
+) do |invitation|
+  invitation.inviter = users[0] # John invites
+end
+
+invitations << GroupInvitation.find_or_create_by!(
+  group: corporate_crew,
+  invitee_email: 'alice@example.com',
+  status: 'pending'
+) do |invitation|
+  invitation.inviter = users[2] # Mike invites
+end
+
+# Accepted invitation (historical record)
+invitations << GroupInvitation.find_or_create_by!(
+  group: weekend_warriors,
+  invitee_email: users[1].email_address, # Jane (already a member from accepting)
+  status: 'accepted'
+) do |invitation|
+  invitation.inviter = users[0] # John invited
+end
+
+# Rejected invitation (historical record)
+invitations << GroupInvitation.find_or_create_by!(
+  group: ladies_league,
+  invitee_email: users[2].email_address, # Mike declined
+  status: 'rejected'
+) do |invitation|
+  invitation.inviter = users[1] # Jane invited
+end
+
+puts "✅ Invitations ready: #{invitations.count} group invitations"
+
+# Create tee time postings (skip if already exist to avoid time-sensitive issues)
+if TeeTimePosting.count == 0 || Rails.env.development?
 puts "⛳ Creating tee time postings..."
 postings = []
 
@@ -233,6 +275,9 @@ reservations << Reservation.create!(
 )
 
 puts "✅ Created #{reservations.count} reservations"
+else
+  puts "⏩ Skipping tee time postings and reservations (already exist in production)"
+end
 
 # Summary
 puts "\n✨ Seed data created successfully! ✨"
@@ -240,6 +285,10 @@ puts "=" * 50
 puts "👤 Users: #{User.count} (#{User.where(admin: true).count} admin)"
 puts "👨‍👩‍👧‍👦 Groups: #{Group.count}"
 puts "🤝 Group Memberships: #{GroupMembership.count}"
+pending_invitations = GroupInvitation.pending.count
+accepted_invitations = GroupInvitation.accepted.count
+rejected_invitations = GroupInvitation.rejected.count
+puts "✉️  Group Invitations: #{GroupInvitation.count} (#{pending_invitations} pending, #{accepted_invitations} accepted, #{rejected_invitations} rejected)"
 public_postings = TeeTimePosting.public_postings.count
 group_postings = TeeTimePosting.count - public_postings
 puts "⛳ Tee Time Postings: #{TeeTimePosting.count} (#{public_postings} public, #{group_postings} group)"

@@ -26,6 +26,11 @@ class GroupPolicy < ApplicationPolicy
     user.present? && (owner? || admin?)
   end
 
+  # Only the group owner or admins can manage invitations
+  def manage_invitations?
+    user.present? && (owner? || admin?)
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.present?

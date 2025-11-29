@@ -10,9 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_29_201138) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_29_210341) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "group_invitations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "group_id", null: false
+    t.string "invitee_email", null: false
+    t.bigint "inviter_id", null: false
+    t.string "status", default: "pending", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_id", "invitee_email", "status"], name: "idx_on_group_id_invitee_email_status_e636042c3d"
+    t.index ["group_id"], name: "index_group_invitations_on_group_id"
+    t.index ["invitee_email"], name: "index_group_invitations_on_invitee_email"
+    t.index ["inviter_id"], name: "index_group_invitations_on_inviter_id"
+    t.index ["token"], name: "index_group_invitations_on_token", unique: true
+  end
 
   create_table "group_memberships", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -91,6 +106,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_201138) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
+  add_foreign_key "group_invitations", "groups"
+  add_foreign_key "group_invitations", "users", column: "inviter_id"
   add_foreign_key "group_memberships", "groups"
   add_foreign_key "group_memberships", "users"
   add_foreign_key "groups", "users", column: "owner_id"
