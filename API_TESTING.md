@@ -187,6 +187,51 @@ curl http://localhost:3000/up
 
 Should return: `200 OK`
 
+## Group Invitations Endpoints
+
+For detailed documentation, see [API_DOCUMENTATION_GROUP_INVITATIONS.md](API_DOCUMENTATION_GROUP_INVITATIONS.md)
+
+### Get My Invitations
+
+```bash
+curl -X GET http://localhost:3000/api/v1/group_invitations \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Get Group's Invitations (Owner/Admin Only)
+
+```bash
+curl -X GET http://localhost:3000/api/v1/groups/1/invitations \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Send an Invitation (Owner/Admin Only)
+
+```bash
+curl -X POST http://localhost:3000/api/v1/groups/1/invitations \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "group_invitation": {
+      "invitee_email": "friend@example.com"
+    }
+  }'
+```
+
+### Accept an Invitation
+
+```bash
+curl -X POST http://localhost:3000/api/v1/group_invitations/1/accept \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Reject an Invitation
+
+```bash
+curl -X POST http://localhost:3000/api/v1/group_invitations/1/reject \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ## Admin Dashboard
 
 Access the Avo admin panel to view/manage data:

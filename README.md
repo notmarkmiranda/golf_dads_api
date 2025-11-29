@@ -88,6 +88,7 @@ The seed data creates:
 - **5 Users** including 1 admin
 - **4 Groups** with different themes
 - **5 Group Memberships** connecting users to groups
+- **5 Group Invitations** (3 pending, 1 accepted, 1 rejected)
 - **8 Tee Time Postings** (4 public, 4 group-specific including 1 multi-group posting)
 - **4 Reservations** showing active bookings
 
@@ -846,6 +847,25 @@ Authorization: Bearer <token>
 - **403 Forbidden:** User is not the group owner
 - **404 Not Found:** Group does not exist
 
+### Group Invitations
+
+Group owners and admins can invite users to join their groups via email. Full documentation: [API_DOCUMENTATION_GROUP_INVITATIONS.md](API_DOCUMENTATION_GROUP_INVITATIONS.md)
+
+**Endpoints:**
+- `GET /api/v1/group_invitations` - Get user's pending invitations
+- `GET /api/v1/group_invitations/:id` - Get specific invitation details
+- `GET /api/v1/groups/:group_id/invitations` - Get all invitations for a group (owner/admin only)
+- `POST /api/v1/groups/:group_id/invitations` - Send invitation (owner/admin only)
+- `POST /api/v1/group_invitations/:id/accept` - Accept invitation
+- `POST /api/v1/group_invitations/:id/reject` - Reject invitation
+
+**Features:**
+- Email-based invitations with unique secure tokens
+- Three status states: pending, accepted, rejected
+- Automatic group membership creation upon acceptance
+- Authorization ensures only owners/admins can invite
+- Users can only accept/reject invitations sent to their email
+
 ### Tee Time Postings
 
 Tee time postings can be public (visible to all users) or group-specific (visible only to group members).
@@ -1232,6 +1252,7 @@ The User model supports both email/password and OAuth authentication.
 - `has_many :sessions` - User login sessions
 - `has_many :group_memberships` - Groups the user is a member of
 - `has_many :groups, through: :group_memberships` - Groups via memberships
+- `has_many :sent_group_invitations` - Invitations sent by the user
 - `has_many :tee_time_postings` - Tee time postings created by the user
 - `has_many :reservations` - Reservations made by the user
 
@@ -1305,6 +1326,7 @@ The Group model represents a collection of golfers who share tee time postings.
 - `belongs_to :owner` (User) - Group creator
 - `has_many :group_memberships` - Join table records
 - `has_many :members` through :group_memberships - Group members
+- `has_many :group_invitations` - Invitations sent for this group
 - `has_and_belongs_to_many :tee_time_postings` - Tee time postings shared with this group
 
 **Validations:**
@@ -1342,6 +1364,58 @@ The GroupMembership model is a join table connecting Users to Groups as members.
 **Cascading Deletes:**
 - Destroyed when user is destroyed
 - Destroyed when group is destroyed
+
+### GroupInvitation
+**Status:** ✅ Complete with 22 passing specs
+
+The GroupInvitation model allows group owners and admins to invite users to join groups via email.
+
+**Attributes:**
+- `group_id` (bigint, required) - Group being invited to
+- `inviter_id` (bigint, required) - User who sent the invitation
+- `invitee_email` (string, required) - Email address of invitee
+- `status` (string, required) - Invitation status (pending, accepted, rejected)
+- `token` (string, required, unique) - Secure random token for invitation tracking
+- `created_at`, `updated_at` (datetime) - Timestamps
+
+**Associations:**
+- `belongs_to :group` - Group being invited to
+- `belongs_to :inviter` (User) - User who sent the invitation
+
+**Validations:**
+- Invitee email format validation (URI::MailTo::EMAIL_REGEXP)
+- Status must be one of: pending, accepted, rejected
+- Token presence and uniqueness
+- Group uniqueness scoped to [invitee_email, status] where status is 'pending'
+- Prevents duplicate pending invitations for same email to same group
+
+**Scopes:**
+- `pending` - Returns only pending invitations
+- `accepted` - Returns only accepted invitations
+- `rejected` - Returns only rejected invitations
+- `for_email(email)` - Returns invitations for specific email address
+
+**Instance Methods:**
+- `accept!(user)` - Accepts invitation and creates group membership (returns false if not pending or email mismatch)
+- `reject!` - Rejects invitation (returns false if not pending)
+- `pending?` - Returns true if status is pending
+- `accepted?` - Returns true if status is accepted
+- `rejected?` - Returns true if status is rejected
+
+**Callbacks:**
+- `before_validation :generate_token` - Auto-generates secure random token on create
+
+**Database Indexes:**
+- Unique index on `token`
+- Index on `invitee_email`
+- Composite index on `[group_id, invitee_email, status]`
+
+**Business Logic:**
+- Tokens are automatically generated using `SecureRandom.urlsafe_base64(32)`
+- Accepting an invitation creates a GroupMembership in a transaction
+- Only pending invitations can be accepted or rejected
+- Email matching is case-insensitive
+- Historical records retained after acceptance/rejection
 
 ### TeeTimePosting
 **Status:** ✅ Complete with 25 passing specs
@@ -1460,6 +1534,20 @@ Authorization is handled by Pundit policies that control who can perform actions
 - Guests see empty scope
 - Uses efficient SQL query with left joins to fetch both owned and member groups
 
+### GroupInvitationPolicy
+**Status:** ✅ Complete
+
+**Rules:**
+- **index**: Authenticated users can list invitations
+- **show**: Users can view invitations sent to their email OR if they're the group owner/admin
+- **create**: Only group owners and admins can send invitations
+- **accept**: Users can accept invitations sent to their email (only if pending)
+- **reject**: Users can reject invitations sent to their email (only if pending)
+
+**Scope:**
+- Authenticated users can see invitations sent to their email address
+- Guests see empty scope
+
 ### TeeTimePostingPolicy
 **Status:** ✅ Complete with 19 passing specs
 
@@ -1516,6 +1604,15 @@ All models have comprehensive Avo admin resources for data management. The admin
 - Searchable user and group associations
 - Join table visualization for user-group relationships
 
+### GroupInvitation Resource
+**Features:**
+- Search by invitee email
+- Display fields: ID, group, inviter, invitee email, status (badge), token, sent at (created_at)
+- Searchable group and inviter associations
+- Status badges with color coding: pending (yellow), accepted (green), rejected (red)
+- Token field visible for tracking
+- Shows when invitation was sent
+
 ### TeeTimePosting Resource
 **Features:**
 - Search by course name or notes
@@ -1550,6 +1647,10 @@ All models have JSON API-compliant serializers using the JSONAPI Serializer gem.
 **GroupMembershipSerializer**
 - Attributes: created_at, updated_at
 - Associations: user, group
+
+**GroupInvitationSerializer**
+- Attributes: invitee_email, status, created_at, updated_at
+- Associations: group, inviter
 
 **TeeTimePostingSerializer**
 - Attributes: tee_time, course_name, available_spots, total_spots, notes, created_at, updated_at
