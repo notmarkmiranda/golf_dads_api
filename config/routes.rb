@@ -12,14 +12,11 @@ Rails.application.routes.draw do
       post 'auth/google', to: 'auth#google'
 
       resources :groups do
-        get 'invitations', to: 'group_invitations#index_for_group'
-        post 'invitations', to: 'group_invitations#create'
-      end
-
-      resources :group_invitations, only: [:index, :show] do
         member do
-          post 'accept'
-          post 'reject'
+          post 'regenerate_code'
+        end
+        collection do
+          post 'join_with_code'
         end
       end
 

@@ -1,45 +1,33 @@
-# Group Invitations API Documentation
+# Group Invite Codes API Documentation
 
 ## Overview
 
-Group invitations allow group owners and admins to invite users to join their groups via email. Users can accept or reject invitations they receive.
+Groups use invite codes for sharing and joining. Each group has a unique, regeneratable 8-character alphanumeric code that can be shared via any channel (text, social media, etc.). No email infrastructure required!
 
-## Endpoints
+## Group Model
 
-### 1. Get User's Invitations
+Every `Group` includes an `invite_code` field:
 
-Get all pending invitations for the current user's email address.
-
-```bash
-GET /api/v1/group_invitations
-```
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Response:**
 ```json
 {
-  "group_invitations": [
-    {
-      "id": 1,
-      "group_id": 2,
-      "inviter_id": 1,
-      "invitee_email": "user@example.com",
-      "status": "pending",
-      "created_at": "2024-11-29T12:00:00Z",
-      "updated_at": "2024-11-29T12:00:00Z"
-    }
-  ]
+  "id": 1,
+  "name": "Weekend Warriors",
+  "description": "Saturday morning golf",
+  "owner_id": 5,
+  "invite_code": "ABC12XYZ",
+  "created_at": "2024-11-29T12:00:00Z",
+  "updated_at": "2024-11-29T12:00:00Z"
 }
 ```
 
-### 2. Get Specific Invitation
+## Endpoints
 
-Get details of a specific invitation.
+### 1. Get Group Details (includes invite code)
+
+Get group information including the invite code.
 
 ```bash
-GET /api/v1/group_invitations/:id
+GET /api/v1/groups/:id
 ```
 
 **Headers:**
@@ -48,61 +36,51 @@ GET /api/v1/group_invitations/:id
 **Response:**
 ```json
 {
-  "group_invitation": {
+  "group": {
     "id": 1,
-    "group_id": 2,
-    "inviter_id": 1,
-    "invitee_email": "user@example.com",
-    "status": "pending",
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf",
+    "owner_id": 5,
+    "invite_code": "ABC12XYZ",
     "created_at": "2024-11-29T12:00:00Z",
     "updated_at": "2024-11-29T12:00:00Z"
   }
 }
 ```
 
-### 3. Get Group's Invitations
+### 2. Regenerate Invite Code
 
-Get all invitations sent for a specific group (owner/admin only).
+Generate a new invite code for the group (owner only). Useful if the code has been leaked or shared publicly.
 
 ```bash
-GET /api/v1/groups/:group_id/invitations
+POST /api/v1/groups/:id/regenerate_code
 ```
 
 **Headers:**
 - `Authorization: Bearer <token>`
 
-**Response:**
+**Response (200 OK):**
 ```json
 {
-  "group_invitations": [
-    {
-      "id": 1,
-      "group_id": 2,
-      "inviter_id": 1,
-      "invitee_email": "user@example.com",
-      "status": "pending",
-      "created_at": "2024-11-29T12:00:00Z",
-      "updated_at": "2024-11-29T12:00:00Z"
-    },
-    {
-      "id": 2,
-      "group_id": 2,
-      "inviter_id": 1,
-      "invitee_email": "another@example.com",
-      "status": "accepted",
-      "created_at": "2024-11-28T12:00:00Z",
-      "updated_at": "2024-11-28T14:30:00Z"
-    }
-  ]
+  "group": {
+    "id": 1,
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf",
+    "owner_id": 5,
+    "invite_code": "NEW8CODE",
+    "created_at": "2024-11-29T12:00:00Z",
+    "updated_at": "2024-11-29T13:00:00Z"
+  },
+  "message": "Invite code regenerated successfully"
 }
 ```
 
-### 4. Create Invitation
+### 3. Join Group with Invite Code
 
-Send an invitation to join a group (owner/admin only).
+Join a group using its invite code.
 
 ```bash
-POST /api/v1/groups/:group_id/invitations
+POST /api/v1/groups/join_with_code
 ```
 
 **Headers:**
@@ -112,136 +90,124 @@ POST /api/v1/groups/:group_id/invitations
 **Request Body:**
 ```json
 {
-  "group_invitation": {
-    "invitee_email": "friend@example.com"
-  }
+  "invite_code": "ABC12XYZ"
 }
 ```
 
-**Response (201 Created):**
+**Response (200 OK):**
 ```json
 {
-  "group_invitation": {
-    "id": 3,
-    "group_id": 2,
-    "inviter_id": 1,
-    "invitee_email": "friend@example.com",
-    "status": "pending",
+  "group": {
+    "id": 1,
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf",
+    "owner_id": 5,
+    "invite_code": "ABC12XYZ",
     "created_at": "2024-11-29T12:00:00Z",
     "updated_at": "2024-11-29T12:00:00Z"
-  }
+  },
+  "message": "Successfully joined Weekend Warriors"
 }
 ```
 
-### 5. Accept Invitation
+**Error Responses:**
 
-Accept a pending invitation (creates group membership).
-
-```bash
-POST /api/v1/group_invitations/:id/accept
-```
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Response (200 OK):**
+- `400 Bad Request` - Invite code is missing
 ```json
 {
-  "group_invitation": {
-    "id": 1,
-    "group_id": 2,
-    "inviter_id": 1,
-    "invitee_email": "user@example.com",
-    "status": "accepted",
-    "created_at": "2024-11-29T12:00:00Z",
-    "updated_at": "2024-11-29T12:30:00Z"
-  },
-  "message": "Successfully joined the group"
+  "error": "Invite code is required"
 }
 ```
 
-### 6. Reject Invitation
-
-Reject a pending invitation.
-
-```bash
-POST /api/v1/group_invitations/:id/reject
-```
-
-**Headers:**
-- `Authorization: Bearer <token>`
-
-**Response (200 OK):**
+- `404 Not Found` - Invalid invite code
 ```json
 {
-  "group_invitation": {
-    "id": 1,
-    "group_id": 2,
-    "inviter_id": 1,
-    "invitee_email": "user@example.com",
-    "status": "rejected",
-    "created_at": "2024-11-29T12:00:00Z",
-    "updated_at": "2024-11-29T12:30:00Z"
-  },
-  "message": "Invitation rejected"
+  "error": "Invalid invite code"
+}
+```
+
+- `422 Unprocessable Entity` - Already a member
+```json
+{
+  "error": "You are already a member of this group"
 }
 ```
 
 ## Authorization Rules
 
-- **View invitations**: Users can view invitations sent to their email address
-- **View group invitations**: Group owners and admins can view all invitations for their groups
-- **Create invitations**: Only group owners and admins can send invitations
-- **Accept invitations**: Users can only accept invitations sent to their email address
-- **Reject invitations**: Users can only reject invitations sent to their email address
+- **View invite code**: Group members can view the invite code
+- **Regenerate invite code**: Only group owners can regenerate the code
+- **Join with code**: Any authenticated user can join a group if they have the valid invite code
 
-## Validations
+## Invite Code Properties
 
-- Email must be valid format
-- Cannot send duplicate pending invitations to the same email for the same group
-- Can only accept/reject invitations with status "pending"
-- Accepting an invitation automatically creates a group membership
+- **Format**: 8-character alphanumeric string (uppercase)
+- **Example**: `ABC12XYZ`, `K9L4MN23`
+- **Uniqueness**: Guaranteed unique across all groups
+- **Case-insensitive**: Lookups work regardless of case (code is stored in uppercase)
+- **Auto-generated**: Created automatically when a group is created
+- **Regeneratable**: Can be changed by the group owner at any time
 
 ## Example cURL Commands
 
-### Get my invitations
+### Get group with invite code
 ```bash
-curl -X GET http://localhost:3000/api/v1/group_invitations \
+curl -X GET http://localhost:3000/api/v1/groups/1 \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Send an invitation
+### Regenerate invite code (owner only)
 ```bash
-curl -X POST http://localhost:3000/api/v1/groups/1/invitations \
+curl -X POST http://localhost:3000/api/v1/groups/1/regenerate_code \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Join group with code
+```bash
+curl -X POST http://localhost:3000/api/v1/groups/join_with_code \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "group_invitation": {
-      "invitee_email": "friend@example.com"
-    }
+    "invite_code": "ABC12XYZ"
   }'
 ```
 
-### Accept an invitation
-```bash
-curl -X POST http://localhost:3000/api/v1/group_invitations/1/accept \
-  -H "Authorization: Bearer $TOKEN"
-```
+## Sharing Invite Codes
 
-### Reject an invitation
-```bash
-curl -X POST http://localhost:3000/api/v1/group_invitations/1/reject \
-  -H "Authorization: Bearer $TOKEN"
-```
+Group owners can share invite codes through any channel:
 
-## Status Values
+1. **Text message**: "Join our golf group! Code: ABC12XYZ"
+2. **Social media**: Post the code for followers
+3. **Email**: Include in email body
+4. **QR code**: Generate QR code containing the invite code
+5. **Deep link**: `golfapp://join?code=ABC12XYZ`
 
-- `pending`: Invitation sent but not yet responded to
-- `accepted`: User accepted and joined the group
-- `rejected`: User declined the invitation
+## Security Considerations
+
+- **Regeneration**: If a code is leaked or shared too widely, owners can regenerate it
+- **No email required**: Users don't need to share email addresses
+- **Simple revocation**: Regenerating the code immediately invalidates the old one
+- **Member tracking**: All group members are tracked via `GroupMembership` records
+
+## Migration from Email Invitations
+
+This system replaces the previous email-based invitation flow with a simpler, more flexible approach:
+
+**Before** (Email Invitations):
+- Owner sends invitation to specific email
+- Invitee receives invitation
+- Invitee accepts/rejects
+- Email infrastructure required
+
+**Now** (Invite Codes):
+- Owner shares code via any channel
+- Anyone with code can join
+- No email infrastructure needed
+- More viral/shareable
 
 ## Notes
 
-- Tokens are generated automatically and are not exposed in API responses for security
-- Future enhancement: Email notifications when invitations are sent (TODO)
-- Invitations remain in the database for historical tracking even after being accepted/rejected
+- Invite codes are automatically generated when a group is created
+- Codes remain valid until regenerated
+- Joining a group automatically creates a `GroupMembership` record
+- No limit on how many people can use the same code (until regenerated)
