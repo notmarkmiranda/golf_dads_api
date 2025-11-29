@@ -46,6 +46,13 @@ module Api
         head :no_content
       end
 
+      # GET /api/v1/tee_time_postings/my_postings
+      def my_postings
+        authorize TeeTimePosting
+        @tee_time_postings = policy_scope(TeeTimePosting).where(user_id: current_user.id)
+        render json: { tee_time_postings: @tee_time_postings }, status: :ok
+      end
+
       private
 
       def set_tee_time_posting
@@ -53,7 +60,7 @@ module Api
       end
 
       def tee_time_posting_params
-        params.require(:tee_time_posting).permit(:tee_time, :course_name, :available_spots, :total_spots, :notes, :group_id)
+        params.require(:tee_time_posting).permit(:tee_time, :course_name, :available_spots, :total_spots, :notes, group_ids: [])
       end
     end
   end

@@ -12,8 +12,16 @@ Rails.application.routes.draw do
       post 'auth/google', to: 'auth#google'
 
       resources :groups
-      resources :tee_time_postings
-      resources :reservations
+      resources :tee_time_postings do
+        collection do
+          get 'my_postings'
+        end
+      end
+      resources :reservations do
+        collection do
+          get 'my_reservations'
+        end
+      end
     end
   end
 

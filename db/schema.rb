@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_24_010822) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_29_201138) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,15 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_010822) do
     t.datetime "updated_at", null: false
     t.index ["owner_id", "name"], name: "index_groups_on_owner_id_and_name", unique: true
     t.index ["owner_id"], name: "index_groups_on_owner_id"
+  end
+
+  create_table "groups_tee_time_postings", id: false, force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.bigint "tee_time_posting_id", null: false
+    t.index ["group_id", "tee_time_posting_id"], name: "index_groups_tee_time_postings_on_group_and_posting", unique: true
+    t.index ["group_id"], name: "index_groups_tee_time_postings_on_group_id"
+    t.index ["tee_time_posting_id", "group_id"], name: "index_groups_tee_time_postings_on_posting_and_group"
+    t.index ["tee_time_posting_id"], name: "index_groups_tee_time_postings_on_tee_time_posting_id"
   end
 
   create_table "reservations", force: :cascade do |t|
@@ -58,14 +67,11 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_010822) do
     t.integer "available_spots", null: false
     t.string "course_name", null: false
     t.datetime "created_at", null: false
-    t.bigint "group_id"
     t.text "notes"
     t.datetime "tee_time", null: false
     t.integer "total_spots"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
-    t.index ["group_id", "tee_time"], name: "index_tee_time_postings_on_group_id_and_tee_time"
-    t.index ["group_id"], name: "index_tee_time_postings_on_group_id"
     t.index ["tee_time"], name: "index_tee_time_postings_on_tee_time"
     t.index ["user_id", "tee_time"], name: "index_tee_time_postings_on_user_id_and_tee_time"
     t.index ["user_id"], name: "index_tee_time_postings_on_user_id"
@@ -88,9 +94,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_010822) do
   add_foreign_key "group_memberships", "groups"
   add_foreign_key "group_memberships", "users"
   add_foreign_key "groups", "users", column: "owner_id"
+  add_foreign_key "groups_tee_time_postings", "groups"
+  add_foreign_key "groups_tee_time_postings", "tee_time_postings"
   add_foreign_key "reservations", "tee_time_postings", on_delete: :cascade
   add_foreign_key "reservations", "users", on_delete: :cascade
   add_foreign_key "sessions", "users"
-  add_foreign_key "tee_time_postings", "groups"
   add_foreign_key "tee_time_postings", "users"
 end

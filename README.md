@@ -88,7 +88,7 @@ The seed data creates:
 - **5 Users** including 1 admin
 - **4 Groups** with different themes
 - **5 Group Memberships** connecting users to groups
-- **7 Tee Time Postings** (4 public, 3 group-specific)
+- **8 Tee Time Postings** (4 public, 4 group-specific including 1 multi-group posting)
 - **4 Reservations** showing active bookings
 
 **Test Credentials:**
@@ -112,8 +112,9 @@ The seed data creates:
 - Corporate Crew (Mike's group) - John and Sarah are members
 
 *Tee Time Postings:*
-- 4 public postings at various famous courses
-- 3 group-specific postings
+- 3 public postings at various famous courses
+- 3 single-group postings (Weekend Warriors, Ladies League, Corporate Crew)
+- 1 multi-group posting (Weekend Warriors + Early Birds) - demonstrates many-to-many relationship
 - 1 past posting (for testing historical data)
 
 *Reservations:*
@@ -1304,6 +1305,7 @@ The Group model represents a collection of golfers who share tee time postings.
 - `belongs_to :owner` (User) - Group creator
 - `has_many :group_memberships` - Join table records
 - `has_many :members` through :group_memberships - Group members
+- `has_and_belongs_to_many :tee_time_postings` - Tee time postings shared with this group
 
 **Validations:**
 - Name presence and uniqueness scoped to owner
@@ -1348,7 +1350,6 @@ The TeeTimePosting model represents an available tee time spot that users can sh
 
 **Attributes:**
 - `user_id` (bigint, required) - User who created the posting
-- `group_id` (bigint, optional) - Group to share with (nil for public postings)
 - `tee_time` (datetime, required) - Date and time of the tee time
 - `course_name` (string, required) - Name of the golf course
 - `available_spots` (integer, required) - Number of spots available
@@ -1358,7 +1359,7 @@ The TeeTimePosting model represents an available tee time spot that users can sh
 
 **Associations:**
 - `belongs_to :user` - Creator of the posting
-- `belongs_to :group` (optional) - Group the posting is shared with
+- `has_and_belongs_to_many :groups` - Groups the posting is shared with (empty for public postings)
 - `has_many :reservations` - Reservations made for this posting
 
 **Validations:**
@@ -1370,25 +1371,26 @@ The TeeTimePosting model represents an available tee time spot that users can sh
 
 **Scopes:**
 - `upcoming` - Returns postings with future tee times
-- `public_postings` - Returns postings without a group (group_id is nil)
+- `public_postings` - Returns postings with no groups (groups collection is empty)
 - `for_group(group)` - Returns postings for a specific group
 
 **Instance Methods:**
-- `public?` - Returns true if posting has no group (public posting)
+- `public?` - Returns true if posting has no groups (public posting)
 - `past?` - Returns true if tee time is in the past
 
 **Database Indexes:**
 - Index on `tee_time` for time-based queries
 - Composite index on `[user_id, tee_time]` for user's postings
-- Composite index on `[group_id, tee_time]` for group's postings
-- Foreign key constraints to users and groups tables
+- Foreign key constraint to users table
+- Join table `groups_tee_time_postings` with composite unique index on `[group_id, tee_time_posting_id]`
 
 **Business Logic:**
-- Public postings (group_id = nil) are visible to all users
+- Public postings (no groups) are visible to all users
 - Group postings are only visible to group members
+- A posting can belong to multiple groups (many-to-many relationship)
 - Past tee times can be updated without validation errors
 - Postings are destroyed when user is destroyed
-- Postings are destroyed when group is destroyed
+- Group associations are removed when a group is destroyed (via join table)
 
 ### Reservation
 **Status:** ✅ Complete with 17 passing specs

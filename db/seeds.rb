@@ -8,6 +8,7 @@ puts "🌱 Seeding database..."
 if Rails.env.development?
   puts "🧹 Cleaning development database..."
   Reservation.destroy_all
+  ActiveRecord::Base.connection.execute("DELETE FROM groups_tee_time_postings")
   TeeTimePosting.destroy_all
   GroupMembership.destroy_all
   Group.destroy_all
@@ -142,35 +143,50 @@ postings << TeeTimePosting.create!(
 )
 
 # Group postings (visible only to group members)
-postings << TeeTimePosting.create!(
+posting_1 = TeeTimePosting.create!(
   user: users[0],
-  group: weekend_warriors,
   tee_time: 10.days.from_now.change(hour: 7, min: 0),
   course_name: 'Torrey Pines Golf Course',
   available_spots: 2,
   total_spots: 4,
   notes: 'Weekend Warriors - our regular Saturday game!'
 )
+posting_1.groups << weekend_warriors
+postings << posting_1
 
-postings << TeeTimePosting.create!(
+posting_2 = TeeTimePosting.create!(
   user: users[1],
-  group: ladies_league,
   tee_time: 2.weeks.from_now.change(hour: 9, min: 0),
   course_name: 'Pinehurst Resort',
   available_spots: 1,
   total_spots: 4,
   notes: 'Ladies League tournament prep round'
 )
+posting_2.groups << ladies_league
+postings << posting_2
 
-postings << TeeTimePosting.create!(
+posting_3 = TeeTimePosting.create!(
   user: users[2],
-  group: corporate_crew,
   tee_time: 3.weeks.from_now.change(hour: 17, min: 0),
   course_name: 'Bethpage Black Course',
   available_spots: 2,
   total_spots: 4,
   notes: 'After-work round, bring your A-game!'
 )
+posting_3.groups << corporate_crew
+postings << posting_3
+
+# Multi-group posting (visible to multiple groups)
+multi_group_posting = TeeTimePosting.create!(
+  user: users[0],
+  tee_time: 4.weeks.from_now.change(hour: 8, min: 30),
+  course_name: 'Spyglass Hill Golf Course',
+  available_spots: 3,
+  total_spots: 4,
+  notes: 'Special event for Weekend Warriors and Early Birds!'
+)
+multi_group_posting.groups << [weekend_warriors, early_birds]
+postings << multi_group_posting
 
 # Past posting (for testing) - skip validations since it's in the past
 past_posting = TeeTimePosting.new(
@@ -224,7 +240,9 @@ puts "=" * 50
 puts "👤 Users: #{User.count} (#{User.where(admin: true).count} admin)"
 puts "👨‍👩‍👧‍👦 Groups: #{Group.count}"
 puts "🤝 Group Memberships: #{GroupMembership.count}"
-puts "⛳ Tee Time Postings: #{TeeTimePosting.count} (#{TeeTimePosting.where(group_id: nil).count} public, #{TeeTimePosting.where.not(group_id: nil).count} group)"
+public_postings = TeeTimePosting.public_postings.count
+group_postings = TeeTimePosting.count - public_postings
+puts "⛳ Tee Time Postings: #{TeeTimePosting.count} (#{public_postings} public, #{group_postings} group)"
 puts "📋 Reservations: #{Reservation.count}"
 puts "=" * 50
 puts "\n📝 Test Credentials:"

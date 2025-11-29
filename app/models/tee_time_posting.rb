@@ -1,7 +1,7 @@
 class TeeTimePosting < ApplicationRecord
   # Associations
   belongs_to :user
-  belongs_to :group, optional: true
+  has_and_belongs_to_many :groups
   has_many :reservations, dependent: :destroy
 
   # Validations
@@ -17,12 +17,12 @@ class TeeTimePosting < ApplicationRecord
 
   # Scopes
   scope :upcoming, -> { where('tee_time > ?', Time.current) }
-  scope :public_postings, -> { where(group_id: nil) }
-  scope :for_group, ->(group) { where(group: group) }
+  scope :public_postings, -> { left_joins(:groups).where(groups: { id: nil }) }
+  scope :for_group, ->(group) { joins(:groups).where(groups: { id: group.id }) }
 
   # Instance methods
   def public?
-    group_id.nil?
+    groups.empty?
   end
 
   def past?

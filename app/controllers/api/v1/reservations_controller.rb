@@ -46,6 +46,13 @@ module Api
         head :no_content
       end
 
+      # GET /api/v1/reservations/my_reservations
+      def my_reservations
+        authorize Reservation
+        @reservations = policy_scope(Reservation).where(user_id: current_user.id)
+        render json: { reservations: @reservations }, status: :ok
+      end
+
       private
 
       def set_reservation
