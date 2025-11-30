@@ -211,3 +211,40 @@ This system replaces the previous email-based invitation flow with a simpler, mo
 - Codes remain valid until regenerated
 - Joining a group automatically creates a `GroupMembership` record
 - No limit on how many people can use the same code (until regenerated)
+
+## Future Enhancements
+
+### Group Preview/Lookup Endpoint
+
+**Goal**: Allow users to preview group information before joining
+
+**Proposed Endpoint**: `GET /api/v1/groups/lookup_by_code?invite_code=ABC123`
+
+**Use Case**:
+Currently, entering an invite code immediately joins the group. A lookup endpoint would allow users to:
+- See group name and description before joining
+- Check if they're already a member
+- Make an informed decision before committing
+
+**Response Format**:
+```json
+{
+  "group": {
+    "id": 1,
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf",
+    "owner_id": 5,
+    "invite_code": "ABC12XYZ",
+    "created_at": "2024-11-29T12:00:00Z",
+    "updated_at": "2024-11-29T12:00:00Z"
+  },
+  "is_member": false,
+  "member_count": 12
+}
+```
+
+**Implementation Notes**:
+- Should not require authentication for previewing public group info
+- Returns 404 if invite code is invalid
+- Can show membership status if user is authenticated
+- Could optionally include member count for social proof
