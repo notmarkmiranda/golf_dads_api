@@ -75,7 +75,53 @@ POST /api/v1/groups/:id/regenerate_code
 }
 ```
 
-### 3. Join Group with Invite Code
+### 3. Get Group Tee Time Postings
+
+Get all tee time postings for a specific group.
+
+```bash
+GET /api/v1/groups/:id/tee_time_postings
+```
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response (200 OK):**
+```json
+{
+  "tee_time_postings": [
+    {
+      "id": 1,
+      "user_id": 5,
+      "course_name": "Pebble Beach",
+      "tee_time": "2024-12-15T10:00:00Z",
+      "available_spots": 2,
+      "total_spots": 4,
+      "notes": "Looking for 2 more players",
+      "created_at": "2024-11-29T12:00:00Z",
+      "updated_at": "2024-11-29T12:00:00Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found` - Group not found
+```json
+{
+  "error": "Group not found"
+}
+```
+
+- `403 Forbidden` - User is not authorized to view the group
+```json
+{
+  "error": "You are not authorized to view this group"
+}
+```
+
+### 4. Join Group with Invite Code
 
 Join a group using its invite code.
 
@@ -159,6 +205,12 @@ curl -X GET http://localhost:3000/api/v1/groups/1 \
 ### Regenerate invite code (owner only)
 ```bash
 curl -X POST http://localhost:3000/api/v1/groups/1/regenerate_code \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Get group tee time postings
+```bash
+curl -X GET http://localhost:3000/api/v1/groups/1/tee_time_postings \
   -H "Authorization: Bearer $TOKEN"
 ```
 
