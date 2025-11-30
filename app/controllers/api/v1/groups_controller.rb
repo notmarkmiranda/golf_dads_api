@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code]
+      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings]
 
       # GET /api/v1/groups
       def index
@@ -55,6 +55,14 @@ module Api
         render json: { group: @group, message: 'Invite code regenerated successfully' }, status: :ok
       rescue ActiveRecord::RecordInvalid => e
         error_response(e.message, :unprocessable_entity)
+      end
+
+      # GET /api/v1/groups/:id/tee_time_postings
+      # Get all tee time postings for a specific group
+      def tee_time_postings
+        authorize @group, :show?
+        @tee_time_postings = TeeTimePosting.for_group(@group)
+        render json: { tee_time_postings: @tee_time_postings }, status: :ok
       end
 
       # POST /api/v1/groups/join_with_code

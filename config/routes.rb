@@ -14,6 +14,7 @@ Rails.application.routes.draw do
       resources :groups do
         member do
           post 'regenerate_code'
+          get 'tee_time_postings'
         end
         collection do
           post 'join_with_code'
