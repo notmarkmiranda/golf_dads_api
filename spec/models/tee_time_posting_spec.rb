@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe TeeTimePosting, type: :model do
   describe 'associations' do
     it { should belong_to(:user) }
-    it { should belong_to(:group).optional }
+    it { should have_and_belong_to_many(:groups) }
   end
 
   describe 'validations' do
@@ -54,13 +54,14 @@ RSpec.describe TeeTimePosting, type: :model do
 
     context 'group validation' do
       it 'allows posting without a group (public posting)' do
-        posting = build(:tee_time_posting, group: nil)
+        posting = build(:tee_time_posting)
         expect(posting).to be_valid
       end
 
       it 'allows posting with a group (group posting)' do
         group = create(:group)
-        posting = build(:tee_time_posting, group: group)
+        posting = build(:tee_time_posting)
+        posting.groups << group
         expect(posting).to be_valid
       end
     end
@@ -97,8 +98,12 @@ RSpec.describe TeeTimePosting, type: :model do
   describe 'scopes and queries' do
     let!(:future_posting) { create(:tee_time_posting, tee_time: 2.days.from_now) }
     let!(:past_posting) { create(:tee_time_posting, :past) }
-    let!(:group_posting) { create(:tee_time_posting, group: create(:group), tee_time: 1.day.from_now) }
-    let!(:public_posting) { create(:tee_time_posting, group: nil, tee_time: 1.day.from_now) }
+    let!(:group_posting) do
+      posting = create(:tee_time_posting, tee_time: 1.day.from_now)
+      posting.groups << create(:group)
+      posting
+    end
+    let!(:public_posting) { create(:tee_time_posting, tee_time: 1.day.from_now) }
 
     describe '.upcoming' do
       it 'returns postings with tee times in the future' do
@@ -118,7 +123,7 @@ RSpec.describe TeeTimePosting, type: :model do
 
     describe '.for_group' do
       it 'returns postings for a specific group' do
-        group_posts = TeeTimePosting.for_group(group_posting.group)
+        group_posts = TeeTimePosting.for_group(group_posting.groups.first)
         expect(group_posts).to include(group_posting)
         expect(group_posts).not_to include(public_posting)
       end
@@ -127,12 +132,13 @@ RSpec.describe TeeTimePosting, type: :model do
 
   describe '#public?' do
     it 'returns true when posting has no group' do
-      posting = build(:tee_time_posting, group: nil)
+      posting = build(:tee_time_posting)
       expect(posting.public?).to be true
     end
 
     it 'returns false when posting has a group' do
-      posting = build(:tee_time_posting, group: create(:group))
+      posting = build(:tee_time_posting)
+      posting.groups << create(:group)
       expect(posting.public?).to be false
     end
   end

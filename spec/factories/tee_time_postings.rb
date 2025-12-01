@@ -7,14 +7,6 @@ FactoryBot.define do
     total_spots { 4 }
     notes { Faker::Lorem.sentence }
 
-    trait :public do
-      group { nil }
-    end
-
-    trait :group_posting do
-      association :group
-    end
-
     trait :past do
       # Create with future time, then update to past to bypass validation
       after(:create) do |posting|

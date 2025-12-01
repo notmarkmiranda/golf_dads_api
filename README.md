@@ -888,7 +888,7 @@ Authorization: Bearer <token>
     {
       "id": 1,
       "user_id": 1,
-      "group_id": null,
+      "group_ids": [],
       "tee_time": "2025-01-20T08:00:00.000Z",
       "course_name": "Pebble Beach",
       "available_spots": 2,
@@ -902,7 +902,7 @@ Authorization: Bearer <token>
 ```
 
 **Authorization:**
-- Returns public postings (group_id = null)
+- Returns public postings (group_ids = [])
 - Returns postings from groups where user is owner or member
 - Does not return postings from groups user is not part of
 
@@ -923,7 +923,7 @@ Authorization: Bearer <token>
   "tee_time_posting": {
     "id": 1,
     "user_id": 1,
-    "group_id": null,
+    "group_ids": [],
     "tee_time": "2025-01-20T08:00:00.000Z",
     "course_name": "Pebble Beach",
     "available_spots": 2,

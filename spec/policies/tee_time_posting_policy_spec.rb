@@ -31,7 +31,7 @@ RSpec.describe TeeTimePostingPolicy, type: :policy do
 
   describe '#show?' do
     context 'when posting is public' do
-      let(:record) { create(:tee_time_posting, user: creator, group: nil) }
+      let(:record) { create(:tee_time_posting, user: creator) }
 
       context 'when user is authenticated' do
         let(:current_user) { non_member }
@@ -51,7 +51,11 @@ RSpec.describe TeeTimePostingPolicy, type: :policy do
     end
 
     context 'when posting is for a group' do
-      let(:record) { create(:tee_time_posting, user: creator, group: group) }
+      let(:record) do
+        posting = create(:tee_time_posting, user: creator)
+        posting.groups << group
+        posting
+      end
 
       before do
         create(:group_membership, user: group_member, group: group)
@@ -176,10 +180,23 @@ RSpec.describe TeeTimePostingPolicy, type: :policy do
   end
 
   describe 'Scope' do
-    let!(:public_posting) { create(:tee_time_posting, user: creator, group: nil, course_name: 'Public Course') }
-    let!(:group_posting) { create(:tee_time_posting, user: creator, group: group, course_name: 'Group Course') }
-    let!(:other_group_posting) { create(:tee_time_posting, user: non_member, group: create(:group, owner: non_member), course_name: 'Other Group Course') }
-    let!(:own_group_posting) { create(:tee_time_posting, user: group_member, group: group, course_name: 'Own Group Course') }
+    let!(:public_posting) { create(:tee_time_posting, user: creator, course_name: 'Public Course') }
+    let!(:group_posting) do
+      posting = create(:tee_time_posting, user: creator, course_name: 'Group Course')
+      posting.groups << group
+      posting
+    end
+    let!(:other_group_posting) do
+      other_group = create(:group, owner: non_member)
+      posting = create(:tee_time_posting, user: non_member, course_name: 'Other Group Course')
+      posting.groups << other_group
+      posting
+    end
+    let!(:own_group_posting) do
+      posting = create(:tee_time_posting, user: group_member, course_name: 'Own Group Course')
+      posting.groups << group
+      posting
+    end
 
     before do
       create(:group_membership, user: group_member, group: group)

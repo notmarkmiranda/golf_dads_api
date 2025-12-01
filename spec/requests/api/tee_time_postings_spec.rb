@@ -8,10 +8,19 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
   let(:group) { create(:group, owner: user) }
 
   describe 'GET /api/v1/tee_time_postings' do
-    let!(:public_posting) { create(:tee_time_posting, user: other_user, group: nil, course_name: 'Public Course') }
-    let!(:own_posting) { create(:tee_time_posting, user: user, group: nil, course_name: 'My Posting') }
-    let!(:group_posting) { create(:tee_time_posting, user: other_user, group: group, course_name: 'Group Posting') }
-    let!(:other_group_posting) { create(:tee_time_posting, user: other_user, group: create(:group, owner: other_user), course_name: 'Other Group') }
+    let!(:public_posting) { create(:tee_time_posting, user: other_user, course_name: 'Public Course') }
+    let!(:own_posting) { create(:tee_time_posting, user: user, course_name: 'My Posting') }
+    let!(:group_posting) do
+      posting = create(:tee_time_posting, user: other_user, course_name: 'Group Posting')
+      posting.groups << group
+      posting
+    end
+    let!(:other_group_posting) do
+      other_group = create(:group, owner: other_user)
+      posting = create(:tee_time_posting, user: other_user, course_name: 'Other Group')
+      posting.groups << other_group
+      posting
+    end
 
     before do
       create(:group_membership, user: user, group: group)
@@ -39,7 +48,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
 
         expect(posting).to have_key('id')
         expect(posting).to have_key('user_id')
-        expect(posting).to have_key('group_id')
+        expect(posting).to have_key('group_ids')
         expect(posting).to have_key('tee_time')
         expect(posting).to have_key('course_name')
         expect(posting).to have_key('available_spots')
@@ -62,7 +71,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
 
   describe 'GET /api/v1/tee_time_postings/:id' do
     context 'when posting is public' do
-      let(:posting) { create(:tee_time_posting, user: other_user, group: nil) }
+      let(:posting) { create(:tee_time_posting, user: other_user) }
 
       it 'returns the posting' do
         get "/api/v1/tee_time_postings/#{posting.id}", headers: { 'Authorization' => "Bearer #{token}" }
@@ -75,7 +84,11 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
     end
 
     context 'when posting is for a group' do
-      let(:posting) { create(:tee_time_posting, user: other_user, group: group) }
+      let(:posting) do
+        posting = create(:tee_time_posting, user: other_user)
+        posting.groups << group
+        posting
+      end
 
       before do
         create(:group_membership, user: user, group: group)
@@ -104,7 +117,11 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
 
     context 'when user is not authorized' do
       let(:other_group) { create(:group, owner: other_user) }
-      let(:posting) { create(:tee_time_posting, user: other_user, group: other_group) }
+      let(:posting) do
+        posting = create(:tee_time_posting, user: other_user)
+        posting.groups << other_group
+        posting
+      end
 
       it 'returns forbidden' do
         get "/api/v1/tee_time_postings/#{posting.id}", headers: { 'Authorization' => "Bearer #{token}" }
@@ -160,18 +177,18 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
         json = JSON.parse(response.body)
         expect(json['tee_time_posting']['course_name']).to eq('Pebble Beach')
         expect(json['tee_time_posting']['available_spots']).to eq(2)
-        expect(json['tee_time_posting']['group_id']).to be_nil
+        expect(json['tee_time_posting']['group_ids']).to eq([])
         expect(json['tee_time_posting']['user_id']).to eq(user.id)
       end
 
       it 'creates a group posting' do
-        params = valid_params.deep_merge(tee_time_posting: { group_id: group.id })
+        params = valid_params.deep_merge(tee_time_posting: { group_ids: [group.id] })
 
         post '/api/v1/tee_time_postings', params: params, headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
-        expect(json['tee_time_posting']['group_id']).to eq(group.id)
+        expect(json['tee_time_posting']['group_ids']).to eq([group.id])
       end
 
       it 'creates posting without optional fields' do

@@ -29,6 +29,12 @@ class TeeTimePosting < ApplicationRecord
     tee_time < Time.current
   end
 
+  def as_json(options = {})
+    super(options).merge(
+      'group_ids' => group_ids
+    )
+  end
+
   private
 
   def tee_time_must_be_in_future
