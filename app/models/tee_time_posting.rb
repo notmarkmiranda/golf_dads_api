@@ -29,10 +29,32 @@ class TeeTimePosting < ApplicationRecord
     tee_time < Time.current
   end
 
+  # Calculate available spots dynamically based on total_spots and reservations
+  def available_spots_calculated
+    return available_spots unless total_spots
+
+    total_spots - reservations.sum(:spots_reserved)
+  end
+
   def as_json(options = {})
-    super(options).merge(
-      'group_ids' => group_ids
+    result = super(options).merge(
+      'group_ids' => group_ids,
+      'available_spots' => available_spots_calculated
     )
+
+    # Include reservations only if current_user is the owner
+    if options[:current_user] && options[:current_user].id == user_id
+      result['reservations'] = reservations.includes(:user).map do |reservation|
+        {
+          'id' => reservation.id,
+          'user_email' => reservation.user.email_address,
+          'spots_reserved' => reservation.spots_reserved,
+          'created_at' => reservation.created_at
+        }
+      end
+    end
+
+    result
   end
 
   private

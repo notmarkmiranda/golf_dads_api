@@ -7,13 +7,13 @@ module Api
       def index
         authorize TeeTimePosting
         @tee_time_postings = policy_scope(TeeTimePosting)
-        render json: { tee_time_postings: @tee_time_postings }, status: :ok
+        render json: { tee_time_postings: @tee_time_postings.map { |ttp| ttp.as_json(current_user: current_user) } }, status: :ok
       end
 
       # GET /api/v1/tee_time_postings/:id
       def show
         authorize @tee_time_posting
-        render json: { tee_time_posting: @tee_time_posting }, status: :ok
+        render json: { tee_time_posting: @tee_time_posting.as_json(current_user: current_user) }, status: :ok
       end
 
       # POST /api/v1/tee_time_postings
@@ -22,7 +22,7 @@ module Api
         @tee_time_posting = current_user.tee_time_postings.build(tee_time_posting_params)
 
         if @tee_time_posting.save
-          render json: { tee_time_posting: @tee_time_posting }, status: :created
+          render json: { tee_time_posting: @tee_time_posting.as_json(current_user: current_user) }, status: :created
         else
           validation_error_response(@tee_time_posting.errors.messages)
         end
@@ -33,7 +33,7 @@ module Api
         authorize @tee_time_posting
 
         if @tee_time_posting.update(tee_time_posting_params)
-          render json: { tee_time_posting: @tee_time_posting }, status: :ok
+          render json: { tee_time_posting: @tee_time_posting.as_json(current_user: current_user) }, status: :ok
         else
           validation_error_response(@tee_time_posting.errors.messages)
         end
