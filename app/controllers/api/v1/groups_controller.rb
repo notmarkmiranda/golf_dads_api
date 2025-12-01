@@ -7,13 +7,13 @@ module Api
       def index
         authorize Group
         @groups = policy_scope(Group)
-        render json: { groups: @groups }, status: :ok
+        render json: { groups: @groups.as_json }, status: :ok
       end
 
       # GET /api/v1/groups/:id
       def show
         authorize @group
-        render json: { group: @group }, status: :ok
+        render json: { group: @group.as_json }, status: :ok
       end
 
       # POST /api/v1/groups
@@ -22,7 +22,7 @@ module Api
         @group = current_user.owned_groups.build(group_params)
 
         if @group.save
-          render json: { group: @group }, status: :created
+          render json: { group: @group.as_json }, status: :created
         else
           validation_error_response(@group.errors.messages)
         end
@@ -33,7 +33,7 @@ module Api
         authorize @group
 
         if @group.update(group_params)
-          render json: { group: @group }, status: :ok
+          render json: { group: @group.as_json }, status: :ok
         else
           validation_error_response(@group.errors.messages)
         end
@@ -52,7 +52,7 @@ module Api
         authorize @group, :update?
 
         @group.regenerate_invite_code!
-        render json: { group: @group, message: 'Invite code regenerated successfully' }, status: :ok
+        render json: { group: @group.as_json, message: 'Invite code regenerated successfully' }, status: :ok
       rescue ActiveRecord::RecordInvalid => e
         error_response(e.message, :unprocessable_entity)
       end
@@ -90,7 +90,7 @@ module Api
 
         if group_membership.save
           render json: {
-            group: group,
+            group: group.as_json,
             message: "Successfully joined #{group.name}"
           }, status: :ok
         else

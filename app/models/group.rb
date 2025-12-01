@@ -19,6 +19,12 @@ class Group < ApplicationRecord
     update!(invite_code: self.class.generate_unique_code)
   end
 
+  def as_json(options = {})
+    super(options).merge(
+      'member_names' => members.pluck(:email_address)
+    )
+  end
+
   # Class methods
   def self.find_by_invite_code(code)
     find_by(invite_code: code&.upcase)

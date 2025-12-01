@@ -40,6 +40,21 @@ RSpec.describe 'Api::Groups', type: :request do
         expect(group).to have_key('description')
         expect(group).to have_key('owner_id')
         expect(group).to have_key('created_at')
+        expect(group).to have_key('member_names')
+      end
+
+      it 'includes member email addresses in member_names' do
+        member_user = create(:user, email_address: 'member@example.com')
+        create(:group_membership, user: member_user, group: owned_group)
+
+        get '/api/v1/groups', headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        my_group = json['groups'].find { |g| g['name'] == 'My Group' }
+
+        expect(my_group['member_names']).to be_an(Array)
+        expect(my_group['member_names']).to include('member@example.com')
       end
     end
 
@@ -67,6 +82,8 @@ RSpec.describe 'Api::Groups', type: :request do
         expect(json['group']['name']).to eq('Test Group')
         expect(json['group']['description']).to eq('Test Description')
         expect(json['group']['owner_id']).to eq(user.id)
+        expect(json['group']).to have_key('member_names')
+        expect(json['group']['member_names']).to be_an(Array)
       end
     end
 
