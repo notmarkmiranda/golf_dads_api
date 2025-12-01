@@ -22,6 +22,9 @@ module Api
         @group = current_user.owned_groups.build(group_params)
 
         if @group.save
+          # Automatically add the owner as a member
+          GroupMembership.create!(group: @group, user: current_user)
+
           render json: { group: @group.as_json }, status: :created
         else
           validation_error_response(@group.errors.messages)
