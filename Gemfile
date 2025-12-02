@@ -36,7 +36,7 @@ gem "image_processing", "~> 1.2"
 gem "propshaft"
 
 # Authentication and Authorization
-gem "jwt", "~> 2.9"
+gem "jwt", "~> 3.1"
 gem "googleauth", "~> 1.11"
 gem "pundit", "~> 2.4"
 
