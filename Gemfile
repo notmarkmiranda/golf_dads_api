@@ -37,7 +37,7 @@ gem "propshaft"
 
 # Authentication and Authorization
 gem "jwt", "~> 2.9"
-gem "google-id-token", "~> 1.4"
+gem "googleauth", "~> 1.11"
 gem "pundit", "~> 2.4"
 
 # JSON API serialization

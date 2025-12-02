@@ -38,24 +38,56 @@ module Api
 
       # POST /api/v1/auth/google
     def google
-      google_token = params[:token]
-      payload = GoogleTokenVerifier.verify(google_token)
+      id_token = params[:idToken] || params[:id_token]
 
-      unless payload
+      if id_token.blank?
         return error_response(
-          message: 'Invalid Google token',
-          status: :unauthorized
+          message: 'ID token is required',
+          status: :bad_request
         )
       end
 
-      user_info = GoogleTokenVerifier.extract_user_info(payload)
-      user = User.from_oauth(**user_info)
+      begin
+        # Verify token with Google
+        payload = GoogleAuthService.verify_token(id_token)
 
-      token = user.generate_jwt
-      render json: {
-        token: token,
-        user: user_response(user)
-      }, status: :ok
+        # Extract user info
+        user_info = GoogleAuthService.extract_user_info(payload)
+
+        # Verify email is confirmed by Google
+        unless user_info[:email_verified]
+          return error_response(
+            message: 'Email not verified by Google',
+            status: :unauthorized
+          )
+        end
+
+        # Find or create user
+        user = User.from_google_auth(user_info)
+
+        # Generate JWT token
+        token = user.generate_jwt
+
+        # Return response
+        render json: {
+          token: token,
+          user: user_response(user)
+        }, status: :ok
+
+      rescue Google::Auth::IDTokens::VerificationError => e
+        Rails.logger.error "Google Sign-In failed: #{e.message}"
+        error_response(
+          message: 'Invalid Google ID token',
+          status: :unauthorized
+        )
+
+      rescue StandardError => e
+        Rails.logger.error "Google Sign-In error: #{e.class} - #{e.message}"
+        error_response(
+          message: 'Authentication failed',
+          status: :internal_server_error
+        )
+      end
     end
 
     private

@@ -17,6 +17,7 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 8 }, if: :password_required?
   validates :provider, presence: true, if: -> { uid.present? }
   validates :uid, presence: true, uniqueness: { scope: :provider }, if: -> { provider.present? }
+  validates :google_id, uniqueness: true, allow_nil: true
 
   # OAuth methods
   def oauth_user?
@@ -37,6 +38,40 @@ class User < ApplicationRecord
     )
     user.save!
     user
+  end
+
+  # Find or create user from Google auth
+  def self.from_google_auth(user_info)
+    # First try to find by google_id
+    user = find_by(google_id: user_info[:google_id])
+    return user if user
+
+    # If not found, try to find by email
+    user = find_by(email_address: user_info[:email])
+
+    if user
+      # Link existing email/password account to Google
+      user.update(google_id: user_info[:google_id])
+      user
+    else
+      # Create new user from Google auth
+      create!(
+        google_id: user_info[:google_id],
+        email_address: user_info[:email],
+        name: user_info[:name],
+        avatar_url: user_info[:picture],
+        # Set provider/uid for OAuth tracking
+        provider: 'google',
+        uid: user_info[:google_id],
+        # No password needed for Google auth users
+        password_digest: nil
+      )
+    end
+  end
+
+  # Check if user signed up with Google
+  def google_user?
+    google_id.present?
   end
 
   # Generate JWT token for API authentication

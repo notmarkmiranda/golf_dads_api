@@ -5,9 +5,9 @@ This guide walks through implementing Google Sign-In authentication for the Golf
 ## Prerequisites
 
 - Ruby 3.x
-- Rails 7.x
+- Rails 8.x
 - Google Cloud Console account with OAuth credentials
-- `google-id-token` gem or similar for token verification
+- `googleauth` gem (Google's official authentication library)
 
 ## Overview
 
@@ -23,18 +23,18 @@ The Google Sign-In flow works as follows:
 
 ## Step 1: Google Cloud Console Setup
 
-### 1.1 Get Your Web Client ID
+### 1.1 Get Your iOS Client ID
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 2. Select your project
-3. Find your **Web application** OAuth client
+3. Find your **iOS application** OAuth client
 4. Copy the **Client ID**
 
-**Important**: The Rails API uses the **Web Client ID**, not the iOS Client ID.
+**Important**: The Rails API now uses the **iOS Client ID** (the same one configured in your iOS app). This is required for proper token verification with the `googleauth` gem.
 
 **Format**: `XXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com`
 
-Example: `714139606616-okg33u7opn9s28jfad6lfho3dsbcbdpl.apps.googleusercontent.com`
+Example: `714139606616-6h0ah0ri87a6kb2p2a5lnqg7p690q3id.apps.googleusercontent.com`
 
 ## Step 2: Install Dependencies
 
@@ -43,8 +43,8 @@ Example: `714139606616-okg33u7opn9s28jfad6lfho3dsbcbdpl.apps.googleusercontent.c
 Add to your `Gemfile`:
 
 ```ruby
-# Google Sign-In token verification
-gem 'google-id-token'
+# Google Sign-In token verification (official Google library)
+gem 'googleauth', '~> 1.11'
 ```
 
 Run:
@@ -52,23 +52,17 @@ Run:
 bundle install
 ```
 
-### Alternative: Use google-api-client
-
-If you prefer the official Google API client:
-
-```ruby
-gem 'google-api-client'
-```
+**Note**: We use the official `googleauth` gem instead of the deprecated `google-id-token` gem. The `googleauth` gem is actively maintained by Google and provides the `Google::Auth::IDTokens.verify_oidc` method for verifying ID tokens.
 
 ## Step 3: Configure Environment Variables
 
 ### 3.1 Add to .env
 
 ```bash
-GOOGLE_CLIENT_ID=YOUR_WEB_CLIENT_ID_HERE.apps.googleusercontent.com
+GOOGLE_CLIENT_ID=YOUR_IOS_CLIENT_ID_HERE.apps.googleusercontent.com
 ```
 
-**Important**: Use the **Web Client ID**, not the iOS Client ID.
+**Important**: Use the **iOS Client ID** (the same one configured in your iOS app's Info.plist).
 
 ### 3.2 Add to credentials.yml.enc (Production)
 
@@ -81,7 +75,7 @@ rails credentials:edit
 Add:
 ```yaml
 google:
-  client_id: YOUR_WEB_CLIENT_ID_HERE.apps.googleusercontent.com
+  client_id: YOUR_IOS_CLIENT_ID_HERE.apps.googleusercontent.com
 ```
 
 ## Step 4: Create Google Auth Service
@@ -90,29 +84,36 @@ Create `app/services/google_auth_service.rb`:
 
 ```ruby
 # app/services/google_auth_service.rb
-require 'google-id-token'
+require 'googleauth/id_tokens'
 
 class GoogleAuthService
   class << self
     # Verify Google ID token and return payload
     # @param id_token [String] The Google ID token from iOS app
     # @return [Hash] The verified token payload
-    # @raise [GoogleIDToken::ValidationError] If token is invalid
+    # @raise [Google::Auth::IDTokens::VerificationError] If token is invalid
     def verify_token(id_token)
-      validator = GoogleIDToken::Validator.new
       client_id = google_client_id
 
+      Rails.logger.info "Verifying Google token with client_id: #{client_id}"
+
       begin
-        payload = validator.check(id_token, client_id)
+        # Use Google's official googleauth gem to verify the token
+        payload = Google::Auth::IDTokens.verify_oidc(id_token, aud: client_id)
 
         if payload
+          Rails.logger.info "Token verified successfully for user: #{payload['email']}"
           # Token is valid, return payload
           payload
         else
+          Rails.logger.error "Token validation returned nil"
           raise StandardError, 'Invalid Google ID token'
         end
-      rescue GoogleIDToken::ValidationError => e
-        Rails.logger.error "Google token verification failed: #{e.message}"
+      rescue Google::Auth::IDTokens::VerificationError => e
+        Rails.logger.error "Google token verification failed: #{e.class} - #{e.message}"
+        raise e
+      rescue StandardError => e
+        Rails.logger.error "Unexpected error during token verification: #{e.class} - #{e.message}"
         raise e
       end
     end
@@ -278,7 +279,7 @@ module Api
             }
           }, status: :ok
 
-        rescue GoogleIDToken::ValidationError => e
+        rescue Google::Auth::IDTokens::VerificationError => e
           Rails.logger.error "Google Sign-In failed: #{e.message}"
           render json: { error: 'Invalid Google ID token' }, status: :unauthorized
 
@@ -421,7 +422,7 @@ RSpec.describe 'Api::V1::Auth', type: :request do
     context 'with invalid token' do
       it 'returns unauthorized error' do
         allow(GoogleAuthService).to receive(:verify_token)
-          .and_raise(GoogleIDToken::ValidationError.new('Invalid token'))
+          .and_raise(Google::Auth::IDTokens::VerificationError.new('Invalid token'))
 
         post '/api/v1/auth/google', params: { idToken: 'invalid_token' }
 
@@ -513,15 +514,16 @@ rails db:migrate
 
 **Possible causes:**
 1. Token expired (Google tokens expire in 1 hour)
-2. Wrong Client ID (must use Web Client ID, not iOS)
+2. Wrong Client ID (must use iOS Client ID that matches the token's audience claim)
 3. Token from wrong Google project
-4. Network issues preventing verification
+4. Network issues preventing verification with Google's servers
 
 **Solutions:**
 - Log the token and payload for debugging
-- Verify GOOGLE_CLIENT_ID environment variable
+- Verify GOOGLE_CLIENT_ID environment variable matches iOS Client ID
 - Check Google Cloud Console credentials
 - Ensure token is fresh (generated recently)
+- Verify the iOS app is using the correct Client ID
 
 ### Issue: "Email not verified by Google"
 
@@ -535,14 +537,15 @@ rails db:migrate
 
 **Solution**: Check User model validations and database constraints.
 
-### Issue: GoogleIDToken::ValidationError
+### Issue: Google::Auth::IDTokens::VerificationError
 
 **Cause**: Token signature verification failed.
 
 **Solutions:**
-- Ensure correct Web Client ID
+- Ensure correct iOS Client ID
 - Check token hasn't expired
-- Verify network connectivity to Google
+- Verify network connectivity to Google's verification servers
+- Ensure the `googleauth` gem is properly installed
 
 ## Monitoring
 
@@ -568,8 +571,9 @@ Monitor:
 
 - [Google Identity Documentation](https://developers.google.com/identity)
 - [Google ID Token Verification](https://developers.google.com/identity/sign-in/web/backend-auth)
-- [google-id-token gem](https://github.com/google/google-id-token)
+- [googleauth gem documentation](https://googleapis.dev/ruby/googleauth/latest/)
 - [OAuth 2.0 for Mobile Apps](https://developers.google.com/identity/protocols/oauth2/native-app)
+- [Verifying ID Tokens](https://googleapis.dev/ruby/googleauth/latest/Google/Auth/IDTokens.html)
 
 ## Support
 
