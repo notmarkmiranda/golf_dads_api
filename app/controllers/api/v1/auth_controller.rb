@@ -105,9 +105,11 @@ module Api
         email: user.email_address,
         name: user.name,
         avatar_url: user.avatar_url,
-        provider: user.provider
+        provider: user.provider,
+        venmo_handle: user.venmo_handle,
+        handicap: user.handicap
       }
-      end
+    end
     end
   end
 end

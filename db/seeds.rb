@@ -10,7 +10,6 @@ if Rails.env.development?
   Reservation.destroy_all
   ActiveRecord::Base.connection.execute("DELETE FROM groups_tee_time_postings")
   TeeTimePosting.destroy_all
-  GroupInvitation.destroy_all
   GroupMembership.destroy_all
   Group.destroy_all
   User.destroy_all
@@ -101,55 +100,6 @@ memberships << GroupMembership.find_or_create_by!(user: users[0], group: corpora
 memberships << GroupMembership.find_or_create_by!(user: users[3], group: corporate_crew) # Sarah joins
 
 puts "✅ Memberships ready: #{memberships.count} group memberships"
-
-# Create group invitations
-puts "✉️  Creating or finding group invitations..."
-invitations = []
-
-# Pending invitations
-invitations << GroupInvitation.find_or_create_by!(
-  group: weekend_warriors,
-  invitee_email: 'bob@example.com',
-  status: 'pending'
-) do |invitation|
-  invitation.inviter = users[0] # John invites
-end
-
-invitations << GroupInvitation.find_or_create_by!(
-  group: early_birds,
-  invitee_email: users[3].email_address, # Sarah (not yet a member)
-  status: 'pending'
-) do |invitation|
-  invitation.inviter = users[0] # John invites
-end
-
-invitations << GroupInvitation.find_or_create_by!(
-  group: corporate_crew,
-  invitee_email: 'alice@example.com',
-  status: 'pending'
-) do |invitation|
-  invitation.inviter = users[2] # Mike invites
-end
-
-# Accepted invitation (historical record)
-invitations << GroupInvitation.find_or_create_by!(
-  group: weekend_warriors,
-  invitee_email: users[1].email_address, # Jane (already a member from accepting)
-  status: 'accepted'
-) do |invitation|
-  invitation.inviter = users[0] # John invited
-end
-
-# Rejected invitation (historical record)
-invitations << GroupInvitation.find_or_create_by!(
-  group: ladies_league,
-  invitee_email: users[2].email_address, # Mike declined
-  status: 'rejected'
-) do |invitation|
-  invitation.inviter = users[1] # Jane invited
-end
-
-puts "✅ Invitations ready: #{invitations.count} group invitations"
 
 # Create tee time postings (skip if already exist to avoid time-sensitive issues)
 if TeeTimePosting.count == 0 || Rails.env.development?
@@ -285,10 +235,6 @@ puts "=" * 50
 puts "👤 Users: #{User.count} (#{User.where(admin: true).count} admin)"
 puts "👨‍👩‍👧‍👦 Groups: #{Group.count}"
 puts "🤝 Group Memberships: #{GroupMembership.count}"
-pending_invitations = GroupInvitation.pending.count
-accepted_invitations = GroupInvitation.accepted.count
-rejected_invitations = GroupInvitation.rejected.count
-puts "✉️  Group Invitations: #{GroupInvitation.count} (#{pending_invitations} pending, #{accepted_invitations} accepted, #{rejected_invitations} rejected)"
 public_postings = TeeTimePosting.public_postings.count
 group_postings = TeeTimePosting.count - public_postings
 puts "⛳ Tee Time Postings: #{TeeTimePosting.count} (#{public_postings} public, #{group_postings} group)"

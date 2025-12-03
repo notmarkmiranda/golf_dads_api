@@ -11,6 +11,9 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'auth#login'
       post 'auth/google', to: 'auth#google'
 
+      get 'users/me', to: 'users#me'
+      patch 'users/me', to: 'users#update'
+
       resources :groups do
         member do
           post 'regenerate_code'
