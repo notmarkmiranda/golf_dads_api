@@ -1231,12 +1231,88 @@ Authorization: Bearer <token>
 
 **Note:** Posting creators can cancel reservations on their postings to manage their tee times.
 
+### User Profile
+
+User profile endpoints allow authenticated users to view and update their profile information. Full documentation: [API_DOCUMENTATION_USERS.md](API_DOCUMENTATION_USERS.md)
+
+#### GET /api/v1/users/me
+**Status:** ✅ Complete with 22 passing specs
+
+Returns the authenticated user's profile information.
+
+**Request:**
+```
+GET /api/v1/users/me
+Authorization: Bearer <token>
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "name": "John Doe",
+  "avatar_url": "https://example.com/avatar.jpg",
+  "provider": "google",
+  "venmo_handle": "@johndoe",
+  "handicap": "15.5"
+}
+```
+
+#### PATCH /api/v1/users/me
+**Status:** ✅ Complete
+
+Updates the authenticated user's profile information. All fields are optional.
+
+**Request:**
+```json
+{
+  "user": {
+    "name": "John Doe",
+    "venmo_handle": "johndoe",
+    "handicap": 15.5
+  }
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "name": "John Doe",
+  "avatar_url": "https://example.com/avatar.jpg",
+  "provider": "google",
+  "venmo_handle": "@johndoe",
+  "handicap": "15.5"
+}
+```
+
+**Error Response (422 Unprocessable Content):**
+```json
+{
+  "errors": {
+    "venmo_handle": ["must start with @"],
+    "handicap": ["must be greater than or equal to 0"]
+  }
+}
+```
+
+**Profile Fields:**
+- `venmo_handle` - Venmo username (@ prefix automatically added if missing)
+- `handicap` - Golf handicap index (0-54.0, one decimal place)
+
+**Validation Rules:**
+- `name` - Cannot be blank
+- `venmo_handle` - Must start with @ (auto-normalized), optional
+- `handicap` - Must be between 0 and 54.0, optional
+
 ## Models
 
 ### User
 **Status:** ✅ Complete with 32 passing specs
 
-The User model supports both email/password and OAuth authentication.
+The User model supports both email/password and OAuth authentication, plus optional profile fields.
 
 **Attributes:**
 - `email_address` (string, required, unique) - User's email
@@ -1244,7 +1320,10 @@ The User model supports both email/password and OAuth authentication.
 - `name` (string, required) - User's display name
 - `provider` (string, optional) - OAuth provider (e.g., "google")
 - `uid` (string, optional) - OAuth provider's user ID
+- `google_id` (string, optional, unique) - Google account identifier for sign-in
 - `avatar_url` (string, optional) - URL to user's avatar image
+- `venmo_handle` (string, optional) - Venmo username for payments (automatically prefixed with @)
+- `handicap` (decimal, optional) - Golf handicap index (0-54.0, precision 4, scale 1)
 - `admin` (boolean, default: false) - Admin flag for Avo dashboard access
 - `created_at`, `updated_at` (datetime) - Timestamps
 
@@ -1265,6 +1344,9 @@ The User model supports both email/password and OAuth authentication.
 - Email format and uniqueness
 - Password required (8+ chars) for non-OAuth users
 - Provider/uid required together for OAuth users
+- Google ID uniqueness (when present)
+- Venmo handle must start with @ (auto-normalized from blank/missing prefix)
+- Handicap must be between 0 and 54.0 (when present)
 
 ### JWT Authentication
 **Status:** ✅ Complete with 11 passing specs
@@ -1586,7 +1668,8 @@ All models have comprehensive Avo admin resources for data management. The admin
 ### User Resource
 **Features:**
 - Search by email or name
-- Display fields: ID, name, email, provider (badge), avatar
+- Display fields: ID, name, email, provider (badge), avatar, venmo_handle, handicap, google_id
+- Profile fields: venmo_handle (automatically adds @ prefix), handicap (0-54.0)
 - Password management for new/edit forms
 - Associated records: sessions, group memberships, groups, tee time postings, reservations
 - OAuth users show "Google" badge, password users show "Password" badge
