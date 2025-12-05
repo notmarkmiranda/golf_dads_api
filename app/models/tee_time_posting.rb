@@ -47,6 +47,7 @@ class TeeTimePosting < ApplicationRecord
       result['reservations'] = reservations.includes(:user).map do |reservation|
         {
           'id' => reservation.id,
+          'user_id' => reservation.user_id,
           'user_email' => reservation.user.email_address,
           'spots_reserved' => reservation.spots_reserved,
           'created_at' => reservation.created_at
