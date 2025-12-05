@@ -12,10 +12,9 @@ RSpec.describe TeeTimePosting, type: :model do
     it { should validate_presence_of(:user) }
     it { should validate_presence_of(:tee_time) }
     it { should validate_presence_of(:course_name) }
-    it { should validate_presence_of(:available_spots) }
+    it { should validate_presence_of(:total_spots) }
 
-    it { should validate_numericality_of(:available_spots).is_greater_than(0) }
-    it { should validate_numericality_of(:total_spots).is_greater_than(0).allow_nil }
+    it { should validate_numericality_of(:total_spots).is_greater_than(0) }
 
     context 'tee_time validation' do
       it 'validates tee_time is in the future for new postings' do
@@ -39,16 +38,22 @@ RSpec.describe TeeTimePosting, type: :model do
       end
     end
 
-    context 'available_spots validation' do
-      it 'validates available_spots is less than or equal to total_spots' do
-        posting = build(:tee_time_posting, available_spots: 3, total_spots: 2)
-        expect(posting).not_to be_valid
-        expect(posting.errors[:available_spots]).to include('must be less than or equal to total spots')
+    context 'available_spots calculation' do
+      it 'calculates available_spots from total_spots and reservations' do
+        posting = create(:tee_time_posting, total_spots: 4)
+        expect(posting.available_spots).to eq(4)
+
+        # Create a reservation
+        create(:reservation, tee_time_posting: posting, spots_reserved: 2)
+        posting.reload
+        expect(posting.available_spots).to eq(2)
       end
 
-      it 'allows available_spots equal to total_spots' do
-        posting = build(:tee_time_posting, available_spots: 4, total_spots: 4)
-        expect(posting).to be_valid
+      it 'returns 0 when all spots are reserved' do
+        posting = create(:tee_time_posting, total_spots: 4)
+        create(:reservation, tee_time_posting: posting, spots_reserved: 4)
+        posting.reload
+        expect(posting.available_spots).to eq(0)
       end
     end
 
@@ -69,28 +74,22 @@ RSpec.describe TeeTimePosting, type: :model do
 
   describe 'attributes' do
     it 'has all required attributes' do
-      posting = build(:tee_time_posting,
+      posting = create(:tee_time_posting,
         tee_time: 2.days.from_now,
         course_name: 'Pebble Beach',
-        available_spots: 2,
         total_spots: 4,
         notes: 'Bring extra balls'
       )
 
       expect(posting.tee_time).to be_within(1.second).of(2.days.from_now)
       expect(posting.course_name).to eq('Pebble Beach')
-      expect(posting.available_spots).to eq(2)
+      expect(posting.available_spots).to eq(4)  # Calculated from total_spots
       expect(posting.total_spots).to eq(4)
       expect(posting.notes).to eq('Bring extra balls')
     end
 
     it 'can be created without notes' do
       posting = build(:tee_time_posting, notes: nil)
-      expect(posting).to be_valid
-    end
-
-    it 'can be created without total_spots' do
-      posting = build(:tee_time_posting, total_spots: nil)
       expect(posting).to be_valid
     end
   end

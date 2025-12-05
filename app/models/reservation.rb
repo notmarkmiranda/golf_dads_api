@@ -13,7 +13,7 @@ class Reservation < ApplicationRecord
   def spots_reserved_does_not_exceed_available_spots
     return unless tee_time_posting && spots_reserved
 
-    if spots_reserved > tee_time_posting.available_spots_calculated
+    if spots_reserved > tee_time_posting.available_spots
       errors.add(:spots_reserved, 'cannot exceed available spots on the tee time posting')
     end
   end

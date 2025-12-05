@@ -21,11 +21,23 @@ module Api
         authorize TeeTimePosting
         @tee_time_posting = current_user.tee_time_postings.build(tee_time_posting_params)
 
-        if @tee_time_posting.save
-          render json: { tee_time_posting: @tee_time_posting.as_json(current_user: current_user) }, status: :created
-        else
-          validation_error_response(@tee_time_posting.errors.messages)
+        ActiveRecord::Base.transaction do
+          if @tee_time_posting.save
+            # Create initial reservation if requested
+            if params[:initial_reservation_spots].present? && params[:initial_reservation_spots].to_i > 0
+              reservation = @tee_time_posting.reservations.create!(
+                user: current_user,
+                spots_reserved: params[:initial_reservation_spots].to_i
+              )
+            end
+
+            render json: { tee_time_posting: @tee_time_posting.as_json(current_user: current_user) }, status: :created
+          else
+            validation_error_response(@tee_time_posting.errors.messages)
+          end
         end
+      rescue ActiveRecord::RecordInvalid => e
+        validation_error_response(e.record.errors.messages)
       end
 
       # PATCH/PUT /api/v1/tee_time_postings/:id
@@ -60,7 +72,7 @@ module Api
       end
 
       def tee_time_posting_params
-        params.require(:tee_time_posting).permit(:tee_time, :course_name, :available_spots, :total_spots, :notes, group_ids: [])
+        params.require(:tee_time_posting).permit(:tee_time, :course_name, :total_spots, :notes, group_ids: [])
       end
     end
   end
