@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_02_141259) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_05_041214) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,7 +66,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_02_141259) do
   end
 
   create_table "tee_time_postings", force: :cascade do |t|
-    t.integer "available_spots", null: false
+    t.integer "available_spots", default: 0
     t.string "course_name", null: false
     t.datetime "created_at", null: false
     t.text "notes"
