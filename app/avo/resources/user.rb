@@ -15,6 +15,9 @@ class Avo::Resources::User < Avo::BaseResource
       record.provider || "Password"
     end
     field :uid, as: :text, readonly: true, hide_on: [:index, :new, :edit]
+    field :google_id, as: :text, readonly: true, hide_on: [:index, :new, :edit]
+    field :venmo_handle, as: :text, help: "Venmo username (@ will be added automatically if missing)"
+    field :handicap, as: :number, help: "Golf handicap (0-54.0)"
     field :password, as: :password, name: "Password", only_on: [:new, :edit], help: "Minimum 8 characters"
     field :password_confirmation, as: :password, name: "Password Confirmation", only_on: [:new, :edit]
     field :created_at, as: :date_time, readonly: true
