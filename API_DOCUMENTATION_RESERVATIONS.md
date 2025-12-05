@@ -24,9 +24,10 @@ The Reservations API allows users to reserve spots on tee time postings. When a 
 }
 ```
 
-## TeeTimePosting with Reservations (Owner View)
+## TeeTimePosting with Reservations
 
-When the authenticated user is the posting owner, the response includes a `reservations` array:
+### Owner View
+When the authenticated user is the posting owner, the response includes a `reservations` array with all reservations:
 
 ```json
 {
@@ -56,6 +57,35 @@ When the authenticated user is the posting owner, the response includes a `reser
   ]
 }
 ```
+
+### Non-Owner View (With Reservation)
+When a non-owner has a reservation, they can see **only their own reservation**:
+
+```json
+{
+  "id": 10,
+  "user_id": 1,
+  "course_name": "Pebble Beach",
+  "tee_time": "2024-12-15T10:00:00Z",
+  "available_spots": 2,
+  "total_spots": 4,
+  "notes": "Looking for 2 more players",
+  "group_ids": [1, 2],
+  "created_at": "2024-12-01T12:00:00Z",
+  "updated_at": "2024-12-01T12:00:00Z",
+  "reservations": [
+    {
+      "id": 3,
+      "user_id": 5,
+      "user_email": "myemail@example.com",
+      "spots_reserved": 1,
+      "created_at": "2024-12-01T15:00:00Z"
+    }
+  ]
+}
+```
+
+This allows users to see and manage their own reservations on the detail view.
 
 ## Endpoints
 
@@ -158,7 +188,7 @@ PATCH /api/v1/reservations/:id
 ```json
 {
   "reservation": {
-    "spots_reserved": 1
+    "spots_reserved": 3
   }
 }
 ```
@@ -170,12 +200,17 @@ PATCH /api/v1/reservations/:id
     "id": 1,
     "user_id": 5,
     "tee_time_posting_id": 10,
-    "spots_reserved": 1,
+    "spots_reserved": 3,
     "created_at": "2024-12-01T14:30:00Z",
     "updated_at": "2024-12-01T15:00:00Z"
   }
 }
 ```
+
+**Important Notes:**
+- When updating a reservation, the validation accounts for your current reservation
+- Example: If you have 2 spots reserved and there are 2 available, you can update to 4 total
+- Calculation: `new_spots <= (available_spots + current_spots_reserved)`
 
 **Error Responses:**
 
@@ -194,6 +229,13 @@ PATCH /api/v1/reservations/:id
   }
 }
 ```
+
+**Example Update Scenario:**
+- Tee time has 4 total spots
+- You currently have 2 spots reserved
+- Available spots shows 2 (4 total - 2 yours)
+- You can update to 4 spots (2 available + 2 yours = 4)
+- You cannot update to 5 spots (would exceed total)
 
 ### 4. Delete Reservation
 
@@ -251,9 +293,12 @@ This ensures the spot count is always accurate and prevents race conditions.
 ## Validation Rules
 
 1. **Unique reservation per user**: Each user can only have one reservation per tee time posting
-2. **Spot availability**: Cannot reserve more spots than available
+2. **Spot availability**:
+   - For new reservations: Cannot reserve more spots than currently available
+   - For updates: Cannot exceed `available_spots + your_current_spots_reserved`
 3. **Positive spots**: Must reserve at least 1 spot
 4. **Integer spots**: Spots must be whole numbers
+5. **Total spots limit**: Cannot exceed the tee time's total_spots
 
 ## Example cURL Commands
 
@@ -311,8 +356,9 @@ Posting owners can see:
 ### What Regular Users See
 Regular users (non-owners) see:
 - Total available spots
-- Their own reservations only
+- Their own reservation (if they have one)
 - **Cannot see** other users' reservations
+- Can update or cancel their own reservation
 
 ### Example Scenarios
 
@@ -339,7 +385,7 @@ Regular users (non-owners) see:
 }
 ```
 
-**Scenario 2: Non-Owner Views Same Posting**
+**Scenario 2: Non-Owner Without Reservation Views Same Posting**
 ```json
 {
   "tee_time_posting": {
@@ -347,6 +393,26 @@ Regular users (non-owners) see:
     "available_spots": 1,
     "total_spots": 4
     // No reservations array
+  }
+}
+```
+
+**Scenario 3: Non-Owner With Reservation Views Same Posting**
+```json
+{
+  "tee_time_posting": {
+    "id": 10,
+    "available_spots": 1,
+    "total_spots": 4,
+    "reservations": [
+      {
+        "id": 3,
+        "user_id": 5,
+        "user_email": "myemail@example.com",
+        "spots_reserved": 1
+      }
+    ]
+    // Only shows their own reservation, not others
   }
 }
 ```
@@ -402,3 +468,23 @@ Regular users (non-owners) see:
 ### Bulk Operations
 - Allow posting owners to cancel all reservations
 - Useful when canceling a tee time posting
+
+## Recent Changes
+
+### December 2025 - Reservation Management Improvements
+
+**Non-Owner Reservation Visibility**
+- Non-owners can now see their own reservation when viewing tee time details
+- Enables users to update or cancel their reservations directly from the detail view
+- Privacy maintained: users still cannot see other users' reservations
+
+**Improved Update Validation**
+- Reservation updates now account for the user's current reservation
+- Users can increase their reservation up to `available_spots + current_spots_reserved`
+- Example: With 2 spots reserved and 2 available, can update to 4 total
+- Prevents unnecessary validation errors when managing reservations
+
+**Database Schema**
+- `available_spots` column made nullable with default value of 0
+- Column still exists for backward compatibility but value is always calculated dynamically
+- Migration: `20251205041214_change_available_spots_to_nullable.rb`
