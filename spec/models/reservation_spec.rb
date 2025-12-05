@@ -16,7 +16,7 @@ RSpec.describe Reservation, type: :model do
 
     context 'when validating spots_reserved does not exceed available_spots' do
       let(:user) { create(:user) }
-      let(:posting) { create(:tee_time_posting, available_spots: 2) }
+      let(:posting) { create(:tee_time_posting, total_spots: 2) }
 
       it 'is valid when spots_reserved equals available_spots' do
         reservation = build(:reservation, user: user, tee_time_posting: posting, spots_reserved: 2)
@@ -32,6 +32,18 @@ RSpec.describe Reservation, type: :model do
         reservation = build(:reservation, user: user, tee_time_posting: posting, spots_reserved: 3)
         expect(reservation).not_to be_valid
         expect(reservation.errors[:spots_reserved]).to include('cannot exceed available spots on the tee time posting')
+      end
+
+      it 'allows updating existing reservation within available spots' do
+        reservation = create(:reservation, user: user, tee_time_posting: posting, spots_reserved: 1)
+        reservation.spots_reserved = 2
+        expect(reservation).to be_valid
+      end
+
+      it 'prevents updating reservation to exceed total spots' do
+        reservation = create(:reservation, user: user, tee_time_posting: posting, spots_reserved: 1)
+        reservation.spots_reserved = 3
+        expect(reservation).not_to be_valid
       end
     end
 
