@@ -1,0 +1,73 @@
+# Claude Code Instructions for Golf API (Rails Backend)
+
+## Pre-Commit Checklist
+
+Before committing any changes, always:
+
+### 1. Run Tests
+- Run relevant test suite: `bundle exec rspec` or `bundle exec rspec spec/path/to/test_spec.rb`
+- Ensure all tests pass before committing
+- If tests fail, fix the failures or update tests appropriately
+- For new features, write tests first or alongside implementation
+
+### 2. Update Documentation
+- Update `README.md` if:
+  - New API endpoints added
+  - New environment variables required
+  - Setup instructions changed
+  - New dependencies added
+- Update `docs/LOCATION_FEATURES.md` if:
+  - Location-based features modified
+  - New golf course API functionality added
+  - Backend endpoints for location features changed
+- Update inline code comments for complex logic
+- Add YARD/RDoc comments to new public methods
+
+### 3. Code Quality
+- Run Rubocop if available: `bundle exec rubocop`
+- Fix any linting issues before committing
+- Ensure proper error handling in controllers and services
+- Check for N+1 queries in new code
+
+### 4. Database Changes
+- If migrations added, verify they're reversible
+- Update schema documentation if major changes
+- Consider backward compatibility
+
+### 5. Commit Message
+- Use descriptive commit messages
+- Include:
+  - What changed and why
+  - Any breaking changes
+  - References to issues if applicable
+- End with Claude Code attribution:
+  ```
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  ```
+
+## Project-Specific Notes
+
+- This is a Rails 7 API-only application
+- Uses PostgreSQL with earthdistance extension for spatial queries
+- Integrates with external Golf Course API (golfcourseapi.com)
+- Authentication via JWT tokens
+- Authorization via Pundit policies
+- API versioning under `/api/v1/`
+
+## Test Patterns
+
+- Request specs for API endpoints in `spec/requests/`
+- Model specs in `spec/models/`
+- Service specs in `spec/services/`
+- Use FactoryBot for test data
+- Mock external API calls in tests
+
+## Key Files to Keep Updated
+
+- `README.md` - Setup and API documentation
+- `docs/LOCATION_FEATURES.md` - Location feature documentation
+- `config/routes.rb` - When adding new endpoints
+- `db/schema.rb` - Automatically updated by migrations
+- `Gemfile` - When adding new dependencies
