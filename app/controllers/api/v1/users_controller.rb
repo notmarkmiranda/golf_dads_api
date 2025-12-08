@@ -20,7 +20,7 @@ module Api
       private
 
       def update_params
-        params.require(:user).permit(:name, :venmo_handle, :handicap)
+        params.require(:user).permit(:name, :venmo_handle, :handicap, :home_zip_code, :preferred_radius_miles)
       end
 
       def user_response(user)
@@ -31,7 +31,9 @@ module Api
           avatar_url: user.avatar_url,
           provider: user.provider,
           venmo_handle: user.venmo_handle,
-          handicap: user.handicap
+          handicap: user.handicap,
+          home_zip_code: user.home_zip_code,
+          preferred_radius_miles: user.preferred_radius_miles
         }
       end
     end

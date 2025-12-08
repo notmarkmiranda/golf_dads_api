@@ -4,10 +4,39 @@ module Api
       before_action :set_tee_time_posting, only: [:show, :update, :destroy]
 
       # GET /api/v1/tee_time_postings
+      # Optional params: latitude, longitude, radius (for location-based filtering)
       def index
         authorize TeeTimePosting
         @tee_time_postings = policy_scope(TeeTimePosting)
-        render json: { tee_time_postings: @tee_time_postings.map { |ttp| ttp.as_json(current_user: current_user) } }, status: :ok
+
+        # Apply location filter if coordinates provided
+        latitude = params[:latitude]&.to_f
+        longitude = params[:longitude]&.to_f
+        radius = params[:radius]&.to_i
+
+        if latitude && longitude
+          radius ||= current_user.preferred_radius_miles || 25
+          # Get the IDs from policy_scope first, then apply near scope separately
+          # This avoids the DISTINCT + ORDER BY conflict
+          authorized_ids = @tee_time_postings.pluck(:id)
+          @tee_time_postings = TeeTimePosting
+            .where(id: authorized_ids)
+            .near(
+              latitude: latitude,
+              longitude: longitude,
+              radius_miles: radius
+            )
+        end
+
+        render json: {
+          tee_time_postings: @tee_time_postings.map { |ttp|
+            ttp.as_json(
+              current_user: current_user,
+              latitude: latitude,
+              longitude: longitude
+            )
+          }
+        }, status: :ok
       end
 
       # GET /api/v1/tee_time_postings/:id
@@ -72,7 +101,7 @@ module Api
       end
 
       def tee_time_posting_params
-        params.require(:tee_time_posting).permit(:tee_time, :course_name, :total_spots, :notes, group_ids: [])
+        params.require(:tee_time_posting).permit(:tee_time, :course_name, :golf_course_id, :total_spots, :notes, group_ids: [])
       end
     end
   end

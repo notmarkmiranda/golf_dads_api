@@ -19,6 +19,8 @@ class User < ApplicationRecord
   validates :google_id, uniqueness: true, allow_nil: true
   validates :venmo_handle, format: { with: /\A@/, message: "must start with @" }, allow_nil: true
   validates :handicap, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 54.0 }, allow_nil: true
+  validates :home_zip_code, format: { with: /\A\d{5}\z/, message: "must be 5 digits" }, allow_nil: true
+  validates :preferred_radius_miles, numericality: { greater_than: 0, less_than_or_equal_to: 100 }, allow_nil: true
 
   # Normalize venmo_handle to always start with @
   normalizes :venmo_handle, with: ->(v) {

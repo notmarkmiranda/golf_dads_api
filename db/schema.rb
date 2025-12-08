@@ -10,9 +10,33 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_05_041214) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_08_003029) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "cube"
+  enable_extension "earthdistance"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "golf_courses", force: :cascade do |t|
+    t.string "address"
+    t.string "city"
+    t.string "club_name"
+    t.string "country"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "external_api_id"
+    t.decimal "latitude", precision: 10, scale: 6
+    t.decimal "longitude", precision: 10, scale: 6
+    t.string "name", null: false
+    t.string "phone"
+    t.string "state"
+    t.datetime "updated_at", null: false
+    t.string "website"
+    t.string "zip_code"
+    t.index ["external_api_id"], name: "index_golf_courses_on_external_api_id", unique: true
+    t.index ["latitude", "longitude"], name: "index_golf_courses_on_latitude_and_longitude"
+    t.index ["name"], name: "index_golf_courses_on_name"
+    t.index ["zip_code"], name: "index_golf_courses_on_zip_code"
+  end
 
   create_table "group_memberships", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -69,11 +93,13 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_05_041214) do
     t.integer "available_spots", default: 0
     t.string "course_name", null: false
     t.datetime "created_at", null: false
+    t.bigint "golf_course_id"
     t.text "notes"
     t.datetime "tee_time", null: false
     t.integer "total_spots"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["golf_course_id"], name: "index_tee_time_postings_on_golf_course_id"
     t.index ["tee_time"], name: "index_tee_time_postings_on_tee_time"
     t.index ["user_id", "tee_time"], name: "index_tee_time_postings_on_user_id_and_tee_time"
     t.index ["user_id"], name: "index_tee_time_postings_on_user_id"
@@ -86,14 +112,17 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_05_041214) do
     t.string "email_address", null: false
     t.string "google_id"
     t.decimal "handicap", precision: 4, scale: 1
+    t.string "home_zip_code"
     t.string "name"
     t.string "password_digest"
+    t.integer "preferred_radius_miles", default: 25
     t.string "provider"
     t.string "uid"
     t.datetime "updated_at", null: false
     t.string "venmo_handle"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["google_id"], name: "index_users_on_google_id", unique: true
+    t.index ["home_zip_code"], name: "index_users_on_home_zip_code"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
@@ -105,5 +134,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_05_041214) do
   add_foreign_key "reservations", "tee_time_postings", on_delete: :cascade
   add_foreign_key "reservations", "users", on_delete: :cascade
   add_foreign_key "sessions", "users"
+  add_foreign_key "tee_time_postings", "golf_courses"
   add_foreign_key "tee_time_postings", "users"
 end

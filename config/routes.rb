@@ -34,6 +34,14 @@ Rails.application.routes.draw do
           get 'my_reservations'
         end
       end
+
+      resources :golf_courses, only: [] do
+        collection do
+          get 'search'
+          get 'nearby'
+          post 'cache'
+        end
+      end
     end
   end
 

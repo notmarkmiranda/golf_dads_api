@@ -3,7 +3,9 @@ require 'rails_helper'
 RSpec.describe TeeTimePosting, type: :model do
   describe 'associations' do
     it { should belong_to(:user) }
+    it { should belong_to(:golf_course).optional }
     it { should have_and_belong_to_many(:groups) }
+    it { should have_many(:reservations).dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -11,10 +13,34 @@ RSpec.describe TeeTimePosting, type: :model do
 
     it { should validate_presence_of(:user) }
     it { should validate_presence_of(:tee_time) }
-    it { should validate_presence_of(:course_name) }
     it { should validate_presence_of(:total_spots) }
 
     it { should validate_numericality_of(:total_spots).is_greater_than(0) }
+
+    context 'course identification' do
+      it 'validates that either course_name or golf_course is present' do
+        posting = build(:tee_time_posting, course_name: nil, golf_course: nil)
+        expect(posting).not_to be_valid
+        expect(posting.errors[:base]).to include('Must specify either course name or golf course')
+      end
+
+      it 'is valid with course_name' do
+        posting = build(:tee_time_posting, course_name: 'Test Course', golf_course: nil)
+        expect(posting).to be_valid
+      end
+
+      it 'is valid with golf_course' do
+        golf_course = create(:golf_course)
+        posting = build(:tee_time_posting, course_name: nil, golf_course: golf_course)
+        expect(posting).to be_valid
+      end
+
+      it 'is valid with both' do
+        golf_course = create(:golf_course)
+        posting = build(:tee_time_posting, course_name: 'Test Course', golf_course: golf_course)
+        expect(posting).to be_valid
+      end
+    end
 
     context 'tee_time validation' do
       it 'validates tee_time is in the future for new postings' do
@@ -151,6 +177,61 @@ RSpec.describe TeeTimePosting, type: :model do
     it 'returns false when tee_time is in the future' do
       posting = build(:tee_time_posting, tee_time: 1.hour.from_now)
       expect(posting.past?).to be false
+    end
+  end
+
+  describe '.near' do
+    let!(:pebble_beach) do
+      create(:golf_course, name: 'Pebble Beach', latitude: 36.5674, longitude: -121.9500)
+    end
+    let!(:augusta) do
+      create(:golf_course, name: 'Augusta National', latitude: 33.5027, longitude: -82.0201)
+    end
+    let!(:torrey_pines) do
+      create(:golf_course, name: 'Torrey Pines', latitude: 32.9043, longitude: -117.2445)
+    end
+
+    let!(:pebble_posting) do
+      create(:tee_time_posting, golf_course: pebble_beach, course_name: 'Pebble Beach')
+    end
+    let!(:augusta_posting) do
+      create(:tee_time_posting, golf_course: augusta, course_name: 'Augusta National')
+    end
+    let!(:torrey_posting) do
+      create(:tee_time_posting, golf_course: torrey_pines, course_name: 'Torrey Pines')
+    end
+
+    it 'returns postings near a location within radius' do
+      # Search near Pebble Beach with 50 mile radius
+      nearby = TeeTimePosting.near(latitude: 36.5, longitude: -121.9, radius_miles: 50)
+      expect(nearby).to include(pebble_posting)
+      expect(nearby).not_to include(augusta_posting)
+    end
+
+    it 'excludes postings outside radius' do
+      # Search near Pebble Beach with 10 mile radius (should exclude Torrey Pines ~300mi away)
+      nearby = TeeTimePosting.near(latitude: 36.5, longitude: -121.9, radius_miles: 10)
+      expect(nearby).to include(pebble_posting)
+      expect(nearby).not_to include(torrey_posting)
+    end
+
+    it 'orders results by distance' do
+      # Search from middle point closer to Torrey Pines and Augusta than Pebble Beach
+      nearby = TeeTimePosting.near(latitude: 33.0, longitude: -117.0, radius_miles: 500)
+      expect(nearby.first).to eq(torrey_posting)
+    end
+
+    it 'includes distance_miles in results' do
+      nearby = TeeTimePosting.near(latitude: 36.5, longitude: -121.9, radius_miles: 50)
+      posting_with_distance = nearby.first
+      expect(posting_with_distance).to respond_to(:distance_miles)
+      expect(posting_with_distance.distance_miles).to be_a(Numeric)
+    end
+
+    it 'only returns postings with associated golf courses' do
+      posting_without_course = create(:tee_time_posting, golf_course: nil, course_name: 'Manual Course')
+      nearby = TeeTimePosting.near(latitude: 36.5, longitude: -121.9, radius_miles: 1000)
+      expect(nearby).not_to include(posting_without_course)
     end
   end
 end

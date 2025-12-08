@@ -46,6 +46,9 @@ gem "jsonapi-serializer", "~> 2.2"
 # Admin panel
 gem "avo", "~> 3.18"
 
+# HTTP client for external APIs
+gem "httparty", "~> 0.22"
+
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
