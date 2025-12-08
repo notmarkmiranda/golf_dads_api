@@ -1,6 +1,6 @@
 class Avo::Resources::TeeTimePosting < Avo::BaseResource
   self.title = :course_name
-  self.includes = [:user, :groups]
+  self.includes = [:user, :groups, :golf_course]
 
   self.search = {
     query: -> { query.where("course_name ILIKE ? OR notes ILIKE ?", "%#{q}%", "%#{q}%") }
@@ -9,6 +9,7 @@ class Avo::Resources::TeeTimePosting < Avo::BaseResource
   def fields
     field :id, as: :id, link_to_record: true
     field :user, as: :belongs_to, required: true, searchable: true
+    field :golf_course, as: :belongs_to, searchable: true, help: "Link to golf course (optional)"
     field :groups, as: :has_and_belongs_to_many, searchable: true, help: "Leave empty for public posting"
     field :tee_time, as: :date_time, required: true
     field :course_name, as: :text, required: true
