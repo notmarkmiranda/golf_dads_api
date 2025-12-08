@@ -49,7 +49,7 @@ Before committing any changes, always:
 
 ## Project-Specific Notes
 
-- This is a Rails 7 API-only application
+- This is a Rails 8 API-only application
 - Uses PostgreSQL with earthdistance extension for spatial queries
 - Integrates with external Golf Course API (golfcourseapi.com)
 - Authentication via JWT tokens
