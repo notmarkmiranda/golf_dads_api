@@ -161,10 +161,10 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
           tee_time_posting: {
             tee_time: future_time,
             course_name: 'Pebble Beach',
-            available_spots: 2,
             total_spots: 4,
             notes: 'Looking for players'
-          }
+          },
+          initial_reservation_spots: 2
         }
       end
 
@@ -176,6 +176,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
         expect(json['tee_time_posting']['course_name']).to eq('Pebble Beach')
+        expect(json['tee_time_posting']['total_spots']).to eq(4)
         expect(json['tee_time_posting']['available_spots']).to eq(2)
         expect(json['tee_time_posting']['group_ids']).to eq([])
         expect(json['tee_time_posting']['user_id']).to eq(user.id)
@@ -196,7 +197,7 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
           tee_time_posting: {
             tee_time: future_time,
             course_name: 'Simple Course',
-            available_spots: 1
+            total_spots: 1
           }
         }
 
@@ -204,7 +205,8 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
 
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
-        expect(json['tee_time_posting']['total_spots']).to be_nil
+        expect(json['tee_time_posting']['total_spots']).to eq(1)
+        expect(json['tee_time_posting']['available_spots']).to eq(1)
         expect(json['tee_time_posting']['notes']).to be_nil
       end
     end
@@ -214,17 +216,18 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
 
       it 'returns error when course_name is missing' do
         post '/api/v1/tee_time_postings',
-             params: { tee_time_posting: { tee_time: future_time, available_spots: 2 } },
+             params: { tee_time_posting: { tee_time: future_time, total_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
-        expect(json['errors']).to have_key('course_name')
+        expect(json['errors']).to have_key('base')
+        expect(json['errors']['base']).to include('Must specify either course name or golf course')
       end
 
       it 'returns error when tee_time is missing' do
         post '/api/v1/tee_time_postings',
-             params: { tee_time_posting: { course_name: 'Course', available_spots: 2 } },
+             params: { tee_time_posting: { course_name: 'Course', total_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:unprocessable_content)
@@ -232,19 +235,19 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
         expect(json['errors']).to have_key('tee_time')
       end
 
-      it 'returns error when available_spots is zero' do
+      it 'returns error when total_spots is zero' do
         post '/api/v1/tee_time_postings',
-             params: { tee_time_posting: { tee_time: future_time, course_name: 'Course', available_spots: 0 } },
+             params: { tee_time_posting: { tee_time: future_time, course_name: 'Course', total_spots: 0 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
-        expect(json['errors']).to have_key('available_spots')
+        expect(json['errors']).to have_key('total_spots')
       end
 
       it 'returns error when tee_time is in the past' do
         post '/api/v1/tee_time_postings',
-             params: { tee_time_posting: { tee_time: 1.day.ago, course_name: 'Course', available_spots: 2 } },
+             params: { tee_time_posting: { tee_time: 1.day.ago, course_name: 'Course', total_spots: 2 } },
              headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:unprocessable_content)
@@ -252,14 +255,14 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
         expect(json['errors']).to have_key('tee_time')
       end
 
-      it 'returns error when available_spots exceeds total_spots' do
+      it 'returns error when initial_reservation_spots exceeds total_spots' do
         post '/api/v1/tee_time_postings',
-             params: { tee_time_posting: { tee_time: future_time, course_name: 'Course', available_spots: 4, total_spots: 2 } },
+             params: { tee_time_posting: { tee_time: future_time, course_name: 'Course', total_spots: 2 }, initial_reservation_spots: 4 },
              headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
-        expect(json['errors']).to have_key('available_spots')
+        expect(json['errors']).to have_key('spots_reserved')
       end
     end
 
@@ -274,22 +277,22 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
   end
 
   describe 'PATCH /api/v1/tee_time_postings/:id' do
-    let(:posting) { create(:tee_time_posting, user: user, course_name: 'Original Course', available_spots: 2) }
+    let(:posting) { create(:tee_time_posting, user: user, course_name: 'Original Course', total_spots: 2) }
 
     context 'when user is the creator' do
       it 'updates the posting' do
         patch "/api/v1/tee_time_postings/#{posting.id}",
-              params: { tee_time_posting: { course_name: 'Updated Course', available_spots: 3 } },
+              params: { tee_time_posting: { course_name: 'Updated Course', total_spots: 3 } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json['tee_time_posting']['course_name']).to eq('Updated Course')
-        expect(json['tee_time_posting']['available_spots']).to eq(3)
+        expect(json['tee_time_posting']['total_spots']).to eq(3)
 
         posting.reload
         expect(posting.course_name).to eq('Updated Course')
-        expect(posting.available_spots).to eq(3)
+        expect(posting.total_spots).to eq(3)
       end
 
       it 'updates only provided fields' do
@@ -305,14 +308,14 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
     end
 
     context 'with invalid parameters' do
-      it 'returns error when available_spots is invalid' do
+      it 'returns error when total_spots is invalid' do
         patch "/api/v1/tee_time_postings/#{posting.id}",
-              params: { tee_time_posting: { available_spots: 0 } },
+              params: { tee_time_posting: { total_spots: 0 } },
               headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:unprocessable_content)
         json = JSON.parse(response.body)
-        expect(json['errors']).to have_key('available_spots')
+        expect(json['errors']).to have_key('total_spots')
       end
     end
 

@@ -3,7 +3,6 @@ FactoryBot.define do
     association :user
     tee_time { 2.days.from_now }
     course_name { Faker::Company.name + " Golf Club" }
-    available_spots { 2 }
     total_spots { 4 }
     notes { Faker::Lorem.sentence }
 
