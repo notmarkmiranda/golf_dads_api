@@ -58,15 +58,17 @@ class GolfCourseApiService
 
   # Find or create golf course from course data hash
   # This caches courses locally as they're discovered
+  # Also handles manual entries without external_id
   def find_or_create_course(course_data:)
     external_id = course_data[:external_id]
-    return nil unless external_id
 
-    # Check local cache first
-    course = GolfCourse.find_by(external_api_id: external_id)
-    return course if course
+    # If external_id exists, check for existing course
+    if external_id.present?
+      course = GolfCourse.find_by(external_api_id: external_id)
+      return course if course
+    end
 
-    # Create local record from provided data
+    # Create new course (either from API or manual entry)
     GolfCourse.create!(
       name: course_data[:name],
       club_name: course_data[:club_name],
