@@ -84,7 +84,7 @@ class GolfCourse < ApplicationRecord
     else
       Rails.logger.warn("✗ Could not geocode #{name} with address: #{full_address}")
     end
-  rescue Geocoder::Error => e
+  rescue StandardError => e
     # Don't fail the save if geocoding fails
     Rails.logger.error("Geocoding error for #{name}: #{e.message}")
   end
