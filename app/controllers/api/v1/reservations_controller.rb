@@ -6,7 +6,7 @@ module Api
       # GET /api/v1/reservations
       def index
         authorize Reservation
-        @reservations = policy_scope(Reservation)
+        @reservations = policy_scope(Reservation).includes(:tee_time_posting)
         render json: { reservations: @reservations }, status: :ok
       end
 
@@ -49,7 +49,7 @@ module Api
       # GET /api/v1/reservations/my_reservations
       def my_reservations
         authorize Reservation
-        @reservations = policy_scope(Reservation).where(user_id: current_user.id)
+        @reservations = policy_scope(Reservation).includes(:tee_time_posting).where(user_id: current_user.id)
         render json: { reservations: @reservations }, status: :ok
       end
 
