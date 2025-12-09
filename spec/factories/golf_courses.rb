@@ -14,6 +14,11 @@ FactoryBot.define do
     trait :without_coordinates do
       latitude { nil }
       longitude { nil }
+      address { nil }
+      city { nil }
+      state { nil }
+      zip_code { nil }
+      country { nil }
     end
 
     trait :pebble_beach do

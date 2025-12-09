@@ -76,17 +76,36 @@ class GolfCourse < ApplicationRecord
   def geocode_address
     return unless should_geocode?
 
-    result = Geocoder.search(full_address).first
+    # Try multiple strategies with fallbacks
+    strategies = [
+      full_address,                                      # Full address
+      city_state_zip,                                    # City, State, Zip (most reliable for free APIs)
+      (city && state ? "#{name}, #{city}, #{state}" : nil)  # Course name + location
+    ].compact
+
+    result = nil
+    strategies.each do |address_string|
+      result = Geocoder.search(address_string).first
+      break if result
+      sleep 0.5 # Brief pause between attempts
+    end
+
     if result
       self.latitude = result.latitude
       self.longitude = result.longitude
       Rails.logger.info("✓ Geocoded #{name}: #{latitude}, #{longitude}")
     else
-      Rails.logger.warn("✗ Could not geocode #{name} with address: #{full_address}")
+      Rails.logger.warn("✗ Could not geocode #{name} (tried #{strategies.count} strategies)")
     end
   rescue StandardError => e
     # Don't fail the save if geocoding fails
     Rails.logger.error("Geocoding error for #{name}: #{e.message}")
+  end
+
+  # City, state, zip fallback (most reliable for free geocoding APIs)
+  def city_state_zip
+    parts = [city, state, zip_code].compact.reject(&:blank?)
+    parts.join(", ").presence
   end
 
   # Haversine formula in Ruby (fallback)
