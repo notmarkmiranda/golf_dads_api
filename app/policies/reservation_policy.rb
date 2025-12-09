@@ -6,6 +6,11 @@ class ReservationPolicy < ApplicationPolicy
     user.present?
   end
 
+  # Authenticated users can view their own reservations
+  def my_reservations?
+    user.present?
+  end
+
   # Users can view their own reservations or reservations on their postings
   def show?
     user.present? && (reserver? || posting_creator?)

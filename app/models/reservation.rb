@@ -9,8 +9,11 @@ class Reservation < ApplicationRecord
   validate :spots_reserved_does_not_exceed_available_spots
 
   def as_json(options = {})
-    super(options).merge(
-      'tee_time_posting' => {
+    result = super(options)
+
+    # Only include tee_time_posting if it exists (could be nil if posting was deleted)
+    if tee_time_posting.present?
+      result['tee_time_posting'] = {
         'id' => tee_time_posting.id,
         'course_name' => tee_time_posting.course_name,
         'tee_time' => tee_time_posting.tee_time,
@@ -20,7 +23,9 @@ class Reservation < ApplicationRecord
         'is_public' => tee_time_posting.public?,
         'is_past' => tee_time_posting.past?
       }
-    )
+    end
+
+    result
   end
 
   private
