@@ -8,6 +8,21 @@ class Reservation < ApplicationRecord
   validates :user_id, uniqueness: { scope: :tee_time_posting_id, message: 'has already reserved this tee time' }
   validate :spots_reserved_does_not_exceed_available_spots
 
+  def as_json(options = {})
+    super(options).merge(
+      'tee_time_posting' => {
+        'id' => tee_time_posting.id,
+        'course_name' => tee_time_posting.course_name,
+        'tee_time' => tee_time_posting.tee_time,
+        'available_spots' => tee_time_posting.available_spots,
+        'total_spots' => tee_time_posting.total_spots,
+        'notes' => tee_time_posting.notes,
+        'is_public' => tee_time_posting.public?,
+        'is_past' => tee_time_posting.past?
+      }
+    )
+  end
+
   private
 
   def spots_reserved_does_not_exceed_available_spots
