@@ -90,8 +90,8 @@ class TeeTimePosting < ApplicationRecord
       end
     end
 
-    # Include full reservations list if current_user is the owner
-    if options[:current_user] && options[:current_user].id == user_id
+    # Include full reservations list for all authenticated users
+    if options[:current_user]
       result['reservations'] = reservations.includes(:user).map do |reservation|
         {
           'id' => reservation.id,
@@ -100,18 +100,6 @@ class TeeTimePosting < ApplicationRecord
           'spots_reserved' => reservation.spots_reserved,
           'created_at' => reservation.created_at
         }
-      end
-    # For non-owners, include only their own reservation if they have one
-    elsif options[:current_user]
-      user_reservation = reservations.find_by(user_id: options[:current_user].id)
-      if user_reservation
-        result['reservations'] = [{
-          'id' => user_reservation.id,
-          'user_id' => user_reservation.user_id,
-          'user_email' => options[:current_user].email_address,
-          'spots_reserved' => user_reservation.spots_reserved,
-          'created_at' => user_reservation.created_at
-        }]
       end
     end
 
