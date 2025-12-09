@@ -120,4 +120,110 @@ RSpec.describe GolfCourse, type: :model do
       expect(course.display_location).to eq('')
     end
   end
+
+  describe 'geocoding' do
+    context 'when creating course with address but no coordinates' do
+      it 'automatically geocodes using full address' do
+        # Stub Geocoder to return known coordinates
+        allow(Geocoder).to receive(:search).with('123 Test St, Test City, CA, 12345, USA').and_return([
+          double(latitude: 37.7749, longitude: -122.4194)
+        ])
+
+        course = create(:golf_course,
+          name: 'Test Course',
+          address: '123 Test St',
+          city: 'Test City',
+          state: 'CA',
+          zip_code: '12345',
+          country: 'USA',
+          latitude: nil,
+          longitude: nil
+        )
+
+        expect(course.latitude).to eq(37.7749)
+        expect(course.longitude).to eq(-122.4194)
+      end
+
+      it 'falls back to city/state/zip when full address fails' do
+        # First search fails, second succeeds
+        allow(Geocoder).to receive(:search)
+          .with('123 Rural Rd, Small Town, MT, 59001, USA')
+          .and_return([])
+        allow(Geocoder).to receive(:search)
+          .with('Small Town, MT, 59001')
+          .and_return([double(latitude: 45.6789, longitude: -110.1234)])
+
+        course = create(:golf_course,
+          name: 'Rural Course',
+          address: '123 Rural Rd',
+          city: 'Small Town',
+          state: 'MT',
+          zip_code: '59001',
+          country: 'USA',
+          latitude: nil,
+          longitude: nil
+        )
+
+        expect(course.latitude).to eq(45.6789)
+        expect(course.longitude).to eq(-110.1234)
+      end
+
+      it 'does not geocode when coordinates already exist' do
+        allow(Geocoder).to receive(:search).and_call_original
+
+        course = create(:golf_course,
+          latitude: 36.5,
+          longitude: -121.9
+        )
+
+        expect(Geocoder).not_to have_received(:search)
+        expect(course.latitude).to eq(36.5)
+        expect(course.longitude).to eq(-121.9)
+      end
+
+      it 'does not geocode when no address information available' do
+        allow(Geocoder).to receive(:search).and_call_original
+
+        course = create(:golf_course, :without_coordinates)
+
+        expect(Geocoder).not_to have_received(:search)
+        expect(course.latitude).to be_nil
+        expect(course.longitude).to be_nil
+      end
+
+      it 'saves course even when geocoding fails' do
+        allow(Geocoder).to receive(:search).and_return([])
+
+        course = create(:golf_course,
+          name: 'Test Course',
+          address: '123 Fake St',
+          city: 'Nowhere',
+          state: 'XX',
+          latitude: nil,
+          longitude: nil
+        )
+
+        expect(course).to be_persisted
+        expect(course.latitude).to be_nil
+        expect(course.longitude).to be_nil
+      end
+
+      it 'handles geocoding errors gracefully' do
+        allow(Geocoder).to receive(:search).and_raise(StandardError.new('API Error'))
+
+        course = create(:golf_course,
+          name: 'Test Course',
+          address: '123 Test St',
+          city: 'Test City',
+          state: 'CA',
+          latitude: nil,
+          longitude: nil
+        )
+
+        expect(course).to be_persisted
+        expect(course.latitude).to be_nil
+        expect(course.longitude).to be_nil
+      end
+    end
+  end
 end
