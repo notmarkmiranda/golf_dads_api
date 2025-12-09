@@ -20,10 +20,18 @@ module Api
         api_service = GolfCourseApiService.new
         api_courses = api_service.search(query: query, limit: 10)
 
-        # Combine and deduplicate (prefer local records)
-        all_courses = (local_courses + api_courses).uniq { |c| c[:external_id] || c[:id] }
+        # Combine and deduplicate
+        # Group by external_id for API courses, then by name as fallback
+        all_courses = (local_courses + api_courses).uniq do |c|
+          # Use external_id if available, otherwise use normalized name + location
+          if c[:external_id].present?
+            [:external_id, c[:external_id]]
+          else
+            [:name, c[:name]&.downcase&.strip, c[:city]&.downcase&.strip, c[:state]&.downcase&.strip]
+          end
+        end
 
-        render json: { golf_courses: all_courses }, status: :ok
+        render json: { golf_courses: all_courses.take(20) }, status: :ok
       end
 
       # GET /api/v1/golf_courses/nearby?latitude=36.5&longitude=-121.9&radius=25

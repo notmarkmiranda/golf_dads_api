@@ -92,7 +92,9 @@ class GolfCourseApiService
   def parse_courses(data)
     courses = data.is_a?(Hash) && data['courses'] ? data['courses'] : []
 
-    courses.map { |c| parse_course(c) }.compact
+    # Parse and deduplicate by external_id
+    parsed = courses.map { |c| parse_course(c) }.compact
+    parsed.uniq { |c| c[:external_id] }
   end
 
   def parse_course(course_data)
