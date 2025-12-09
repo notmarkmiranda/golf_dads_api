@@ -8,6 +8,9 @@ class GolfCourse < ApplicationRecord
   validates :latitude, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90 }, allow_nil: true
   validates :longitude, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_nil: true
 
+  # Geocoding callback
+  after_validation :geocode_address, if: :should_geocode?
+
   # Scopes
   scope :with_coordinates, -> { where.not(latitude: nil, longitude: nil) }
 
@@ -56,6 +59,35 @@ class GolfCourse < ApplicationRecord
   end
 
   private
+
+  # Determine if course should be geocoded
+  def should_geocode?
+    # Only geocode if we don't have coordinates but have address info
+    latitude.nil? && longitude.nil? && full_address.present?
+  end
+
+  # Build address string from available fields
+  def full_address
+    parts = [address, city, state, zip_code, country].compact.reject(&:blank?)
+    parts.join(", ").presence
+  end
+
+  # Geocode address to get lat/lng coordinates
+  def geocode_address
+    return unless should_geocode?
+
+    result = Geocoder.search(full_address).first
+    if result
+      self.latitude = result.latitude
+      self.longitude = result.longitude
+      Rails.logger.info("✓ Geocoded #{name}: #{latitude}, #{longitude}")
+    else
+      Rails.logger.warn("✗ Could not geocode #{name} with address: #{full_address}")
+    end
+  rescue Geocoder::Error => e
+    # Don't fail the save if geocoding fails
+    Rails.logger.error("Geocoding error for #{name}: #{e.message}")
+  end
 
   # Haversine formula in Ruby (fallback)
   def haversine_distance(lat2, lon2)

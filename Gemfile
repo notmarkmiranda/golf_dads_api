@@ -49,6 +49,9 @@ gem "avo", "~> 3.18"
 # HTTP client for external APIs
 gem "httparty", "~> 0.22"
 
+# Geocoding for address to lat/lng conversion
+gem "geocoder", "~> 1.8"
+
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
