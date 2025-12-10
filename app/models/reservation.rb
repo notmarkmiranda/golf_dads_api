@@ -15,6 +15,7 @@ class Reservation < ApplicationRecord
     if tee_time_posting.present?
       result['tee_time_posting'] = {
         'id' => tee_time_posting.id,
+        'user_id' => tee_time_posting.user_id,
         'course_name' => tee_time_posting.course_name,
         'tee_time' => tee_time_posting.tee_time,
         'available_spots' => tee_time_posting.available_spots,
