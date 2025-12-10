@@ -6,8 +6,12 @@ class GolfCourseApiService
   def initialize(api_key: nil)
     @api_key = api_key ||
                Rails.application.credentials.dig(:golf_course_api, :key) ||
-               ENV['GOLF_COURSE_API_KEY'] ||
-               '***REMOVED***'  # Default key for development
+               ENV['GOLF_COURSE_API_KEY']
+
+    if @api_key.blank?
+      raise ArgumentError, "Golf Course API key not found. Please set it in Rails credentials or ENV['GOLF_COURSE_API_KEY']"
+    end
+
     @options = {
       headers: {
         'Authorization' => "Key #{@api_key}",
