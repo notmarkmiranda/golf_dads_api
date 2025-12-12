@@ -31,9 +31,9 @@ class GroupPolicy < ApplicationPolicy
     user.present? && (owner? || admin?)
   end
 
-  # Members can attempt to leave (owner check handled in controller)
+  # Members and owners can attempt to leave (owner rejection handled in controller with custom message)
   def leave?
-    user.present? && member?
+    user.present? && (member? || owner?)
   end
 
   # Only owner can remove members
