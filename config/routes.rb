@@ -18,6 +18,7 @@ Rails.application.routes.draw do
         member do
           post 'regenerate_code'
           get 'tee_time_postings'
+          get 'members'
           post 'leave'
           delete 'members/:user_id', to: 'groups#remove_member', as: 'remove_member'
           post 'transfer_ownership'

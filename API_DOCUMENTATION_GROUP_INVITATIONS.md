@@ -293,7 +293,61 @@ DELETE /api/v1/groups/:id/members/:user_id
 }
 ```
 
-### 7. Transfer Ownership
+### 7. Get Group Members
+
+Get all members of a group with their details (members only).
+
+```bash
+GET /api/v1/groups/:id/members
+```
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response (200 OK):**
+```json
+{
+  "members": [
+    {
+      "id": 5,
+      "email": "john@example.com",
+      "name": "john",
+      "joined_at": "2024-11-29T12:00:00Z"
+    },
+    {
+      "id": 10,
+      "email": "jane@example.com",
+      "name": "jane",
+      "joined_at": "2024-11-29T13:00:00Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - User is not a member of the group
+```json
+{
+  "error": "You are not authorized to perform this action"
+}
+```
+
+- `404 Not Found` - Group not found
+```json
+{
+  "error": "Group not found"
+}
+```
+
+- `401 Unauthorized` - Not authenticated
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+### 8. Transfer Ownership
 
 Transfer group ownership to another member (owner only). The current owner becomes a regular member.
 
@@ -384,6 +438,7 @@ POST /api/v1/groups/:id/transfer_ownership
 - **View invite code**: Group members can view the invite code
 - **Regenerate invite code**: Only group owners can regenerate the code
 - **Join with code**: Any authenticated user can join a group if they have the valid invite code
+- **View members**: Group members can view the member list with details
 - **Leave group**: Any group member can leave, except the owner (owner must transfer ownership first)
 - **Remove member**: Only the group owner can remove members (cannot remove the owner)
 - **Transfer ownership**: Only the group owner can transfer ownership to another member
@@ -425,6 +480,12 @@ curl -X POST http://localhost:3000/api/v1/groups/join_with_code \
   -d '{
     "invite_code": "ABC12XYZ"
   }'
+```
+
+### Get group members
+```bash
+curl -X GET http://localhost:3000/api/v1/groups/1/members \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Leave group

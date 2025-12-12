@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership]
+      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership, :members]
 
       # GET /api/v1/groups
       def index
@@ -182,6 +182,24 @@ module Api
         error_response(message: 'User not found', status: :not_found)
       rescue ActiveRecord::RecordInvalid => e
         error_response(message: e.message, status: :unprocessable_entity)
+      end
+
+      # GET /api/v1/groups/:id/members
+      # Get all members of the group with their details
+      def members
+        authorize @group, :show?
+
+        members_data = @group.members.map do |member|
+          membership = @group.group_memberships.find_by(user: member)
+          {
+            id: member.id,
+            email: member.email_address,
+            name: member.email_address.split('@').first,
+            joined_at: membership.created_at
+          }
+        end
+
+        render json: { members: members_data }, status: :ok
       end
 
       private

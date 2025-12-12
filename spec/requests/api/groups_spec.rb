@@ -589,4 +589,84 @@ RSpec.describe 'Api::Groups', type: :request do
       end
     end
   end
+
+  describe 'GET /api/v1/groups/:id/members' do
+    let!(:group) { create(:group, owner: user, name: 'Test Group') }
+    let!(:member_user1) { create(:user, email_address: 'member1@example.com') }
+    let!(:member_user2) { create(:user, email_address: 'member2@example.com') }
+    let!(:membership1) { create(:group_membership, user: member_user1, group: group) }
+    let!(:membership2) { create(:group_membership, user: member_user2, group: group) }
+
+    context 'when user is a member' do
+      it 'returns all members with their details' do
+        get "/api/v1/groups/#{group.id}/members",
+            headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['members']).to be_an(Array)
+        expect(json['members'].length).to eq(2)
+
+        # Check that members have required fields
+        member = json['members'].first
+        expect(member).to have_key('id')
+        expect(member).to have_key('email')
+        expect(member).to have_key('name')
+        expect(member).to have_key('joined_at')
+
+        # Verify member IDs are included
+        member_ids = json['members'].map { |m| m['id'] }
+        expect(member_ids).to include(member_user1.id)
+        expect(member_ids).to include(member_user2.id)
+      end
+
+      it 'includes the owner in the members list' do
+        # Owner should also have a membership
+        create(:group_membership, user: user, group: group)
+
+        get "/api/v1/groups/#{group.id}/members",
+            headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['members'].length).to eq(3)
+
+        member_ids = json['members'].map { |m| m['id'] }
+        expect(member_ids).to include(user.id)
+      end
+    end
+
+    context 'when user is not a member' do
+      let!(:non_member_user) { create(:user, email_address: 'nonmember@example.com') }
+      let(:non_member_token) { non_member_user.generate_jwt }
+
+      it 'returns forbidden' do
+        get "/api/v1/groups/#{group.id}/members",
+            headers: { 'Authorization' => "Bearer #{non_member_token}" }
+
+        expect(response).to have_http_status(:forbidden)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('You are not authorized to perform this action')
+      end
+    end
+
+    context 'when group does not exist' do
+      it 'returns not found' do
+        get '/api/v1/groups/99999/members',
+            headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Group not found')
+      end
+    end
+
+    context 'when not authenticated' do
+      it 'returns unauthorized' do
+        get "/api/v1/groups/#{group.id}/members"
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end
