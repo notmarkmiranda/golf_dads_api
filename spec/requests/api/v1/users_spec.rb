@@ -26,12 +26,29 @@ RSpec.describe 'Api::V1::Users', type: :request do
         expect(json['handicap']).to eq('15.5')
       end
 
+      it 'includes location preferences when set' do
+        user.update(home_zip_code: '94102', preferred_radius_miles: 50)
+        get '/api/v1/users/me', headers: auth_headers
+
+        json = JSON.parse(response.body)
+        expect(json['home_zip_code']).to eq('94102')
+        expect(json['preferred_radius_miles']).to eq(50)
+      end
+
       it 'includes nil values for unset profile fields' do
         get '/api/v1/users/me', headers: auth_headers
 
         json = JSON.parse(response.body)
         expect(json['venmo_handle']).to be_nil
         expect(json['handicap']).to be_nil
+        expect(json['home_zip_code']).to be_nil
+      end
+
+      it 'includes default value for preferred_radius_miles when not set' do
+        get '/api/v1/users/me', headers: auth_headers
+
+        json = JSON.parse(response.body)
+        expect(json['preferred_radius_miles']).to eq(25)
       end
     end
 
@@ -97,6 +114,96 @@ RSpec.describe 'Api::V1::Users', type: :request do
 
           user.reload
           expect(user.venmo_handle).to be_nil
+        end
+      end
+
+      context 'updating location preferences' do
+        it 'updates home_zip_code with valid 5-digit zip' do
+          patch '/api/v1/users/me',
+            params: { user: { home_zip_code: '94102' } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['home_zip_code']).to eq('94102')
+
+          user.reload
+          expect(user.home_zip_code).to eq('94102')
+        end
+
+        it 'updates preferred_radius_miles with valid value' do
+          patch '/api/v1/users/me',
+            params: { user: { preferred_radius_miles: 50 } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['preferred_radius_miles']).to eq(50)
+
+          user.reload
+          expect(user.preferred_radius_miles).to eq(50)
+        end
+
+        it 'allows clearing home_zip_code' do
+          user.update(home_zip_code: '94102')
+
+          patch '/api/v1/users/me',
+            params: { user: { home_zip_code: nil } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['home_zip_code']).to be_nil
+
+          user.reload
+          expect(user.home_zip_code).to be_nil
+        end
+
+        it 'returns error for invalid zip code format' do
+          patch '/api/v1/users/me',
+            params: { user: { home_zip_code: '1234' } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          json = JSON.parse(response.body)
+          expect(json['errors']['home_zip_code']).to include('must be 5 digits')
+        end
+
+        it 'returns error for non-numeric zip code' do
+          patch '/api/v1/users/me',
+            params: { user: { home_zip_code: 'abcde' } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          json = JSON.parse(response.body)
+          expect(json['errors']['home_zip_code']).to include('must be 5 digits')
+        end
+
+        it 'returns error for radius less than or equal to 0' do
+          patch '/api/v1/users/me',
+            params: { user: { preferred_radius_miles: 0 } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          json = JSON.parse(response.body)
+          expect(json['errors']['preferred_radius_miles']).to include('must be greater than 0')
+        end
+
+        it 'returns error for radius over 100' do
+          patch '/api/v1/users/me',
+            params: { user: { preferred_radius_miles: 101 } },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          json = JSON.parse(response.body)
+          expect(json['errors']['preferred_radius_miles']).to include('must be less than or equal to 100')
         end
       end
 
@@ -216,6 +323,36 @@ RSpec.describe 'Api::V1::Users', type: :request do
           expect(user.name).to eq('Updated Name')
           expect(user.venmo_handle).to eq('@updated')
           expect(user.handicap).to eq(12.5)
+        end
+
+        it 'updates profile with location preferences' do
+          patch '/api/v1/users/me',
+            params: {
+              user: {
+                name: 'Updated Name',
+                venmo_handle: '@updated',
+                handicap: 12.5,
+                home_zip_code: '94102',
+                preferred_radius_miles: 50
+              }
+            },
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['name']).to eq('Updated Name')
+          expect(json['venmo_handle']).to eq('@updated')
+          expect(json['handicap']).to eq('12.5')
+          expect(json['home_zip_code']).to eq('94102')
+          expect(json['preferred_radius_miles']).to eq(50)
+
+          user.reload
+          expect(user.name).to eq('Updated Name')
+          expect(user.venmo_handle).to eq('@updated')
+          expect(user.handicap).to eq(12.5)
+          expect(user.home_zip_code).to eq('94102')
+          expect(user.preferred_radius_miles).to eq(50)
         end
       end
 
