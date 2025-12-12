@@ -128,6 +128,10 @@ module Api
         end
 
         membership.destroy
+
+        # Regenerate invite code for security when a member leaves
+        @group.regenerate_invite_code!
+
         render json: { message: 'Successfully left the group' }, status: :ok
       end
 

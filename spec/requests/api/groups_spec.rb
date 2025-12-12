@@ -410,6 +410,17 @@ RSpec.describe 'Api::Groups', type: :request do
         # Verify membership is removed
         expect(group.members.reload).not_to include(user)
       end
+
+      it 'regenerates the invite code for security' do
+        old_invite_code = group.invite_code
+
+        post "/api/v1/groups/#{group.id}/leave", headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+
+        # Verify invite code changed
+        expect(group.reload.invite_code).not_to eq(old_invite_code)
+      end
     end
 
     context 'when user is the owner' do

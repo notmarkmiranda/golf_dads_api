@@ -183,6 +183,8 @@ POST /api/v1/groups/join_with_code
 
 Leave a group you're a member of (except group owner - owner must transfer ownership first).
 
+**Security Note:** When a member leaves, the group's invite code is automatically regenerated for security purposes.
+
 ```bash
 POST /api/v1/groups/:id/leave
 ```
@@ -196,6 +198,10 @@ POST /api/v1/groups/:id/leave
   "message": "Successfully left the group"
 }
 ```
+
+**Side Effects:**
+- The group's invite code is automatically regenerated
+- The old invite code becomes invalid immediately
 
 **Error Responses:**
 
