@@ -293,6 +293,92 @@ DELETE /api/v1/groups/:id/members/:user_id
 }
 ```
 
+### 7. Transfer Ownership
+
+Transfer group ownership to another member (owner only). The current owner becomes a regular member.
+
+```bash
+POST /api/v1/groups/:id/transfer_ownership
+```
+
+**Headers:**
+- `Authorization: Bearer <token>`
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "new_owner_id": 10
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "group": {
+    "id": 1,
+    "name": "Weekend Warriors",
+    "description": "Saturday morning golf",
+    "owner_id": 10,
+    "invite_code": "ABC12XYZ",
+    "created_at": "2024-11-29T12:00:00Z",
+    "updated_at": "2024-11-29T14:00:00Z"
+  },
+  "message": "Ownership transferred successfully"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - New owner ID is missing
+```json
+{
+  "error": "New owner ID is required"
+}
+```
+
+- `422 Unprocessable Entity` - New owner is not a member
+```json
+{
+  "error": "New owner must be a member of the group"
+}
+```
+
+- `422 Unprocessable Entity` - Attempting to transfer to self
+```json
+{
+  "error": "User is already the owner"
+}
+```
+
+- `404 Not Found` - New owner user not found
+```json
+{
+  "error": "User not found"
+}
+```
+
+- `403 Forbidden` - User is not the group owner
+```json
+{
+  "error": "You are not authorized to perform this action"
+}
+```
+
+- `404 Not Found` - Group not found
+```json
+{
+  "error": "Group not found"
+}
+```
+
+- `401 Unauthorized` - Not authenticated
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
 ## Authorization Rules
 
 - **View invite code**: Group members can view the invite code
@@ -300,6 +386,7 @@ DELETE /api/v1/groups/:id/members/:user_id
 - **Join with code**: Any authenticated user can join a group if they have the valid invite code
 - **Leave group**: Any group member can leave, except the owner (owner must transfer ownership first)
 - **Remove member**: Only the group owner can remove members (cannot remove the owner)
+- **Transfer ownership**: Only the group owner can transfer ownership to another member
 
 ## Invite Code Properties
 
@@ -350,6 +437,16 @@ curl -X POST http://localhost:3000/api/v1/groups/1/leave \
 ```bash
 curl -X DELETE http://localhost:3000/api/v1/groups/1/members/5 \
   -H "Authorization: Bearer $TOKEN"
+```
+
+### Transfer ownership (owner only)
+```bash
+curl -X POST http://localhost:3000/api/v1/groups/1/transfer_ownership \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "new_owner_id": 10
+  }'
 ```
 
 ## Sharing Invite Codes

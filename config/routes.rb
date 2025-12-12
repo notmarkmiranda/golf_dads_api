@@ -20,6 +20,7 @@ Rails.application.routes.draw do
           get 'tee_time_postings'
           post 'leave'
           delete 'members/:user_id', to: 'groups#remove_member', as: 'remove_member'
+          post 'transfer_ownership'
         end
         collection do
           post 'join_with_code'

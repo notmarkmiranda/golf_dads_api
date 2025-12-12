@@ -41,6 +41,11 @@ class GroupPolicy < ApplicationPolicy
     user.present? && owner?
   end
 
+  # Only owner can transfer ownership
+  def transfer_ownership?
+    user.present? && owner?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.present?

@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member]
+      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership]
 
       # GET /api/v1/groups
       def index
@@ -148,6 +148,40 @@ module Api
         render json: { message: 'Member removed successfully' }, status: :ok
       rescue ActiveRecord::RecordNotFound
         error_response(message: 'User not found', status: :not_found)
+      end
+
+      # POST /api/v1/groups/:id/transfer_ownership
+      # Transfer ownership to another member (owner only)
+      def transfer_ownership
+        authorize @group, :transfer_ownership?
+
+        new_owner_id = params[:new_owner_id]
+
+        if new_owner_id.blank?
+          return error_response(message: 'New owner ID is required', status: :bad_request)
+        end
+
+        # Find the new owner
+        new_owner = User.find(new_owner_id)
+
+        # Prevent transferring to self (check before membership)
+        if new_owner.id == @group.owner_id
+          return error_response(message: 'User is already the owner', status: :unprocessable_entity)
+        end
+
+        # Verify new owner is a member
+        unless @group.members.include?(new_owner)
+          return error_response(message: 'New owner must be a member of the group', status: :unprocessable_entity)
+        end
+
+        # Transfer ownership
+        @group.update!(owner: new_owner)
+
+        render json: { group: @group.as_json, message: 'Ownership transferred successfully' }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        error_response(message: 'User not found', status: :not_found)
+      rescue ActiveRecord::RecordInvalid => e
+        error_response(message: e.message, status: :unprocessable_entity)
       end
 
       private

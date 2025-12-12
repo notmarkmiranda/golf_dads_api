@@ -477,4 +477,116 @@ RSpec.describe 'Api::Groups', type: :request do
       end
     end
   end
+
+  describe 'POST /api/v1/groups/:id/transfer_ownership' do
+    let!(:group) { create(:group, owner: user, name: 'Test Group') }
+    let!(:member_user) { create(:user, email_address: 'member@example.com') }
+    let!(:membership) { create(:group_membership, user: member_user, group: group) }
+
+    context 'when user is the owner' do
+      it 'successfully transfers ownership to a member' do
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: { new_owner_id: member_user.id },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['message']).to eq('Ownership transferred successfully')
+        expect(json['group']['owner_id']).to eq(member_user.id)
+
+        # Verify ownership changed in database
+        expect(group.reload.owner_id).to eq(member_user.id)
+      end
+
+      it 'returns error when new owner is not a member' do
+        non_member = create(:user, email_address: 'nonmember@example.com')
+
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: { new_owner_id: non_member.id },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('New owner must be a member of the group')
+
+        # Verify ownership didn't change
+        expect(group.reload.owner_id).to eq(user.id)
+      end
+
+      it 'returns error when trying to transfer to self' do
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: { new_owner_id: user.id },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('User is already the owner')
+
+        # Verify ownership didn't change
+        expect(group.reload.owner_id).to eq(user.id)
+      end
+
+      it 'returns error when new owner ID is missing' do
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: {},
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('New owner ID is required')
+
+        # Verify ownership didn't change
+        expect(group.reload.owner_id).to eq(user.id)
+      end
+
+      it 'returns error when new owner does not exist' do
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: { new_owner_id: 99999 },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('User not found')
+
+        # Verify ownership didn't change
+        expect(group.reload.owner_id).to eq(user.id)
+      end
+    end
+
+    context 'when user is not the owner' do
+      it 'returns forbidden' do
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: { new_owner_id: member_user.id },
+             headers: { 'Authorization' => "Bearer #{other_token}" }
+
+        expect(response).to have_http_status(:forbidden)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('You are not authorized to perform this action')
+
+        # Verify ownership didn't change
+        expect(group.reload.owner_id).to eq(user.id)
+      end
+    end
+
+    context 'when group does not exist' do
+      it 'returns not found' do
+        post '/api/v1/groups/99999/transfer_ownership',
+             params: { new_owner_id: member_user.id },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Group not found')
+      end
+    end
+
+    context 'when not authenticated' do
+      it 'returns unauthorized' do
+        post "/api/v1/groups/#{group.id}/transfer_ownership",
+             params: { new_owner_id: member_user.id }
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end
