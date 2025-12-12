@@ -318,4 +318,77 @@ RSpec.describe 'Api::Groups', type: :request do
       end
     end
   end
+
+  describe 'POST /api/v1/groups/:id/leave' do
+    let!(:group) { create(:group, owner: other_user, name: 'Test Group') }
+    let!(:membership) { create(:group_membership, user: user, group: group) }
+
+    context 'when user is a member (not owner)' do
+      it 'successfully leaves the group' do
+        expect {
+          post "/api/v1/groups/#{group.id}/leave", headers: { 'Authorization' => "Bearer #{token}" }
+        }.to change(GroupMembership, :count).by(-1)
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['message']).to eq('Successfully left the group')
+
+        # Verify membership is removed
+        expect(group.members.reload).not_to include(user)
+      end
+    end
+
+    context 'when user is the owner' do
+      let(:owned_group) { create(:group, owner: user, name: 'My Group') }
+
+      before do
+        create(:group_membership, user: user, group: owned_group)
+      end
+
+      it 'returns forbidden error' do
+        expect {
+          post "/api/v1/groups/#{owned_group.id}/leave", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:forbidden)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Owner must transfer ownership before leaving')
+
+        # Verify membership still exists
+        expect(owned_group.members.reload).to include(user)
+      end
+    end
+
+    context 'when user is not a member' do
+      let(:non_member_group) { create(:group, owner: other_user, name: 'Non-Member Group') }
+
+      it 'returns forbidden' do
+        expect {
+          post "/api/v1/groups/#{non_member_group.id}/leave", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:forbidden)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('You are not authorized to perform this action')
+      end
+    end
+
+    context 'when group does not exist' do
+      it 'returns not found' do
+        post '/api/v1/groups/99999/leave', headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Group not found')
+      end
+    end
+
+    context 'when not authenticated' do
+      it 'returns unauthorized' do
+        post "/api/v1/groups/#{group.id}/leave"
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

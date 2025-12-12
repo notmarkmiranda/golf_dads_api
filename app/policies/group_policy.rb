@@ -31,6 +31,11 @@ class GroupPolicy < ApplicationPolicy
     user.present? && (owner? || admin?)
   end
 
+  # Members can attempt to leave (owner check handled in controller)
+  def leave?
+    user.present? && member?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.present?

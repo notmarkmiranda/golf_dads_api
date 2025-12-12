@@ -18,6 +18,7 @@ Rails.application.routes.draw do
         member do
           post 'regenerate_code'
           get 'tee_time_postings'
+          post 'leave'
         end
         collection do
           post 'join_with_code'

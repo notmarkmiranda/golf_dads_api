@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings]
+      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave]
 
       # GET /api/v1/groups
       def index
@@ -99,6 +99,27 @@ module Api
         else
           validation_error_response(group_membership.errors.messages)
         end
+      end
+
+      # POST /api/v1/groups/:id/leave
+      # Leave a group (members only, not owner)
+      def leave
+        authorize @group, :leave?
+
+        # Block if user is the owner
+        if @group.owner_id == current_user.id
+          return error_response(message: 'Owner must transfer ownership before leaving', status: :forbidden)
+        end
+
+        # Find and destroy the membership
+        membership = @group.group_memberships.find_by(user: current_user)
+
+        if membership.nil?
+          return error_response(message: 'You are not a member of this group', status: :unprocessable_entity)
+        end
+
+        membership.destroy
+        render json: { message: 'Successfully left the group' }, status: :ok
       end
 
       private

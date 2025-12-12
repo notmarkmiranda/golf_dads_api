@@ -179,11 +179,60 @@ POST /api/v1/groups/join_with_code
 }
 ```
 
+### 5. Leave Group
+
+Leave a group you're a member of (except group owner - owner must transfer ownership first).
+
+```bash
+POST /api/v1/groups/:id/leave
+```
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response (200 OK):**
+```json
+{
+  "message": "Successfully left the group"
+}
+```
+
+**Error Responses:**
+
+- `403 Forbidden` - User is the group owner (must transfer ownership first)
+```json
+{
+  "error": "Owner must transfer ownership before leaving"
+}
+```
+
+- `403 Forbidden` - User is not a member of the group
+```json
+{
+  "error": "You are not authorized to perform this action"
+}
+```
+
+- `404 Not Found` - Group not found
+```json
+{
+  "error": "Group not found"
+}
+```
+
+- `401 Unauthorized` - Not authenticated
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
 ## Authorization Rules
 
 - **View invite code**: Group members can view the invite code
 - **Regenerate invite code**: Only group owners can regenerate the code
 - **Join with code**: Any authenticated user can join a group if they have the valid invite code
+- **Leave group**: Any group member can leave, except the owner (owner must transfer ownership first)
 
 ## Invite Code Properties
 
@@ -222,6 +271,12 @@ curl -X POST http://localhost:3000/api/v1/groups/join_with_code \
   -d '{
     "invite_code": "ABC12XYZ"
   }'
+```
+
+### Leave group
+```bash
+curl -X POST http://localhost:3000/api/v1/groups/1/leave \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Sharing Invite Codes
