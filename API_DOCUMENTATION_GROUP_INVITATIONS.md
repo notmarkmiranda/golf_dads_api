@@ -347,7 +347,49 @@ GET /api/v1/groups/:id/members
 }
 ```
 
-### 8. Transfer Ownership
+### 8. Delete Group
+
+Delete a group (owner only). This action also deletes all tee time postings that are exclusively visible to this group.
+
+**Cascade Deletion Rules:**
+- Tee time postings visible ONLY to this group will be permanently deleted
+- Tee time postings shared with multiple groups will remain but no longer be associated with this group
+- Public tee time postings (not associated with any group) are unaffected
+
+```bash
+DELETE /api/v1/groups/:id
+```
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response (204 No Content):**
+No response body returned. Group and its exclusive tee time postings are deleted.
+
+**Error Responses:**
+
+- `403 Forbidden` - User is not the group owner
+```json
+{
+  "error": "You are not authorized to perform this action"
+}
+```
+
+- `404 Not Found` - Group not found
+```json
+{
+  "error": "Group not found"
+}
+```
+
+- `401 Unauthorized` - Not authenticated
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+### 9. Transfer Ownership
 
 Transfer group ownership to another member (owner only). The current owner becomes a regular member.
 
@@ -441,6 +483,7 @@ POST /api/v1/groups/:id/transfer_ownership
 - **View members**: Group members can view the member list with details
 - **Leave group**: Any group member can leave, except the owner (owner must transfer ownership first)
 - **Remove member**: Only the group owner can remove members (cannot remove the owner)
+- **Delete group**: Only the group owner can delete the group (also deletes exclusive tee time postings)
 - **Transfer ownership**: Only the group owner can transfer ownership to another member
 
 ## Invite Code Properties
@@ -491,6 +534,12 @@ curl -X GET http://localhost:3000/api/v1/groups/1/members \
 ### Leave group
 ```bash
 curl -X POST http://localhost:3000/api/v1/groups/1/leave \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Delete group (owner only)
+```bash
+curl -X DELETE http://localhost:3000/api/v1/groups/1 \
   -H "Authorization: Bearer $TOKEN"
 ```
 

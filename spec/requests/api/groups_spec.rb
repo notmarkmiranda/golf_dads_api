@@ -288,6 +288,80 @@ RSpec.describe 'Api::Groups', type: :request do
         expect(response).to have_http_status(:no_content)
         expect(response.body).to be_empty
       end
+
+      it 'deletes tee time postings that are only visible to this group' do
+        # Create a tee time posting that's only in this group
+        posting = create(:tee_time_posting, user: user, course_name: 'Test Course')
+        posting.groups << group
+
+        expect {
+          delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.to change(TeeTimePosting, :count).by(-1)
+
+        expect(response).to have_http_status(:no_content)
+      end
+
+      it 'does not delete tee time postings that are visible to multiple groups' do
+        # Create another group
+        other_group = create(:group, owner: user, name: 'Other Group')
+
+        # Create a tee time posting in both groups
+        posting = create(:tee_time_posting, user: user, course_name: 'Test Course')
+        posting.groups << [group, other_group]
+
+        expect {
+          delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(TeeTimePosting, :count)
+
+        expect(response).to have_http_status(:no_content)
+
+        # Verify the posting still exists and is associated with other_group
+        posting.reload
+        expect(posting.groups).to include(other_group)
+        expect(posting.groups).not_to include(group)
+      end
+
+      it 'does not delete public tee time postings (no groups)' do
+        # Create a public posting (no groups)
+        posting = create(:tee_time_posting, user: user, course_name: 'Test Course')
+
+        expect {
+          delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(TeeTimePosting, :count)
+
+        expect(response).to have_http_status(:no_content)
+      end
+
+      it 'handles mixed scenario: deletes exclusive postings, preserves shared ones' do
+        # Exclusive posting (only in this group)
+        exclusive_posting = create(:tee_time_posting, user: user, course_name: 'Exclusive Course')
+        exclusive_posting.groups << group
+
+        # Shared posting (in this group and another)
+        other_group = create(:group, owner: user, name: 'Other Group')
+        shared_posting = create(:tee_time_posting, user: user, course_name: 'Shared Course')
+        shared_posting.groups << [group, other_group]
+
+        # Public posting (no groups)
+        public_posting = create(:tee_time_posting, user: user, course_name: 'Public Course')
+
+        expect {
+          delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.to change(TeeTimePosting, :count).by(-1)  # Only exclusive posting deleted
+
+        expect(response).to have_http_status(:no_content)
+
+        # Verify exclusive posting is deleted
+        expect(TeeTimePosting.exists?(exclusive_posting.id)).to be false
+
+        # Verify shared posting still exists
+        expect(TeeTimePosting.exists?(shared_posting.id)).to be true
+        shared_posting.reload
+        expect(shared_posting.groups).to include(other_group)
+
+        # Verify public posting still exists
+        expect(TeeTimePosting.exists?(public_posting.id)).to be true
+      end
     end
 
     context 'when user is not the owner' do

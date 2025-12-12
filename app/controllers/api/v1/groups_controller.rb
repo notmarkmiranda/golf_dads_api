@@ -45,6 +45,15 @@ module Api
       # DELETE /api/v1/groups/:id
       def destroy
         authorize @group
+
+        # Delete tee time postings that are only visible to this group
+        @group.tee_time_postings.each do |posting|
+          # Only delete if this is the only group the posting is visible to
+          if posting.groups.count == 1
+            posting.destroy
+          end
+        end
+
         @group.destroy
         head :no_content
       end
