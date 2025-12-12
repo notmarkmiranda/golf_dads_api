@@ -36,6 +36,11 @@ class GroupPolicy < ApplicationPolicy
     user.present? && member?
   end
 
+  # Only owner can remove members
+  def remove_member?
+    user.present? && owner?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.present?

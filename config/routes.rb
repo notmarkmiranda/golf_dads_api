@@ -19,6 +19,7 @@ Rails.application.routes.draw do
           post 'regenerate_code'
           get 'tee_time_postings'
           post 'leave'
+          delete 'members/:user_id', to: 'groups#remove_member', as: 'remove_member'
         end
         collection do
           post 'join_with_code'

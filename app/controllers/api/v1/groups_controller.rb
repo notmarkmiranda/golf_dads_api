@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave]
+      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member]
 
       # GET /api/v1/groups
       def index
@@ -120,6 +120,34 @@ module Api
 
         membership.destroy
         render json: { message: 'Successfully left the group' }, status: :ok
+      end
+
+      # DELETE /api/v1/groups/:group_id/members/:user_id
+      # Remove a member from the group (owner only)
+      def remove_member
+        authorize @group, :remove_member?
+
+        user_id = params[:user_id]
+
+        # Find the user to remove
+        user_to_remove = User.find(user_id)
+
+        # Prevent removing the owner
+        if user_to_remove.id == @group.owner_id
+          return error_response(message: 'Cannot remove the group owner', status: :unprocessable_entity)
+        end
+
+        # Find and destroy the membership
+        membership = @group.group_memberships.find_by(user: user_to_remove)
+
+        if membership.nil?
+          return error_response(message: 'User is not a member of this group', status: :unprocessable_entity)
+        end
+
+        membership.destroy
+        render json: { message: 'Member removed successfully' }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        error_response(message: 'User not found', status: :not_found)
       end
 
       private

@@ -391,4 +391,90 @@ RSpec.describe 'Api::Groups', type: :request do
       end
     end
   end
+
+  describe 'DELETE /api/v1/groups/:id/members/:user_id' do
+    let!(:group) { create(:group, owner: user, name: 'Test Group') }
+    let!(:member_user) { create(:user, email_address: 'member@example.com') }
+    let!(:membership) { create(:group_membership, user: member_user, group: group) }
+
+    context 'when user is the owner' do
+      it 'successfully removes a member' do
+        expect {
+          delete "/api/v1/groups/#{group.id}/members/#{member_user.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.to change(GroupMembership, :count).by(-1)
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['message']).to eq('Member removed successfully')
+
+        # Verify membership is removed
+        expect(group.members.reload).not_to include(member_user)
+      end
+
+      it 'prevents removing the group owner' do
+        # Add owner as a member too
+        create(:group_membership, user: user, group: group)
+
+        expect {
+          delete "/api/v1/groups/#{group.id}/members/#{user.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Cannot remove the group owner')
+      end
+
+      it 'returns error when user is not a member' do
+        non_member = create(:user, email_address: 'nonmember@example.com')
+
+        expect {
+          delete "/api/v1/groups/#{group.id}/members/#{non_member.id}", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('User is not a member of this group')
+      end
+
+      it 'returns error when user does not exist' do
+        expect {
+          delete "/api/v1/groups/#{group.id}/members/99999", headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('User not found')
+      end
+    end
+
+    context 'when user is not the owner' do
+      it 'returns forbidden' do
+        expect {
+          delete "/api/v1/groups/#{group.id}/members/#{member_user.id}", headers: { 'Authorization' => "Bearer #{other_token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:forbidden)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('You are not authorized to perform this action')
+      end
+    end
+
+    context 'when group does not exist' do
+      it 'returns not found' do
+        delete "/api/v1/groups/99999/members/#{member_user.id}", headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Group not found')
+      end
+    end
+
+    context 'when not authenticated' do
+      it 'returns unauthorized' do
+        delete "/api/v1/groups/#{group.id}/members/#{member_user.id}"
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

@@ -227,12 +227,79 @@ POST /api/v1/groups/:id/leave
 }
 ```
 
+### 6. Remove Member from Group
+
+Remove a member from the group (owner only). Owner cannot be removed.
+
+```bash
+DELETE /api/v1/groups/:id/members/:user_id
+```
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**URL Parameters:**
+- `id` - Group ID
+- `user_id` - User ID of the member to remove
+
+**Response (200 OK):**
+```json
+{
+  "message": "Member removed successfully"
+}
+```
+
+**Error Responses:**
+
+- `422 Unprocessable Entity` - Attempting to remove the group owner
+```json
+{
+  "error": "Cannot remove the group owner"
+}
+```
+
+- `422 Unprocessable Entity` - User is not a member
+```json
+{
+  "error": "User is not a member of this group"
+}
+```
+
+- `404 Not Found` - User not found
+```json
+{
+  "error": "User not found"
+}
+```
+
+- `403 Forbidden` - User is not the group owner
+```json
+{
+  "error": "You are not authorized to perform this action"
+}
+```
+
+- `404 Not Found` - Group not found
+```json
+{
+  "error": "Group not found"
+}
+```
+
+- `401 Unauthorized` - Not authenticated
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
 ## Authorization Rules
 
 - **View invite code**: Group members can view the invite code
 - **Regenerate invite code**: Only group owners can regenerate the code
 - **Join with code**: Any authenticated user can join a group if they have the valid invite code
 - **Leave group**: Any group member can leave, except the owner (owner must transfer ownership first)
+- **Remove member**: Only the group owner can remove members (cannot remove the owner)
 
 ## Invite Code Properties
 
@@ -276,6 +343,12 @@ curl -X POST http://localhost:3000/api/v1/groups/join_with_code \
 ### Leave group
 ```bash
 curl -X POST http://localhost:3000/api/v1/groups/1/leave \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Remove member (owner only)
+```bash
+curl -X DELETE http://localhost:3000/api/v1/groups/1/members/5 \
   -H "Authorization: Bearer $TOKEN"
 ```
 
