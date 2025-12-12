@@ -6,6 +6,8 @@ class User < ApplicationRecord
   has_many :groups, through: :group_memberships
   has_many :tee_time_postings, dependent: :destroy
   has_many :reservations, dependent: :destroy
+  has_many :favorite_golf_courses, dependent: :destroy
+  has_many :favorites, through: :favorite_golf_courses, source: :golf_course
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
@@ -89,5 +91,10 @@ class User < ApplicationRecord
       user_id: id,
       email: email_address
     }, exp: exp)
+  end
+
+  # Check if course is favorited
+  def favorited?(golf_course)
+    favorites.exists?(golf_course.id)
   end
 end

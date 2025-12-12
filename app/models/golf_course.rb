@@ -1,6 +1,8 @@
 class GolfCourse < ApplicationRecord
   # Associations
   has_many :tee_time_postings, dependent: :nullify
+  has_many :favorite_golf_courses, dependent: :destroy
+  has_many :favorited_by_users, through: :favorite_golf_courses, source: :user
 
   # Validations
   validates :name, presence: true

@@ -46,6 +46,8 @@ Rails.application.routes.draw do
           post 'cache'
         end
       end
+
+      resources :favorite_golf_courses, only: [:index, :create, :destroy]
     end
   end
 

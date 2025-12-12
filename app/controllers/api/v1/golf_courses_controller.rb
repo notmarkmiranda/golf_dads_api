@@ -94,7 +94,8 @@ module Api
           latitude: course.latitude&.to_f,
           longitude: course.longitude&.to_f,
           phone: course.phone,
-          website: course.website
+          website: course.website,
+          is_favorite: current_user&.favorited?(course) || false
         }
 
         # Include distance if coordinates provided and course has location

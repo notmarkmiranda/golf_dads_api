@@ -10,11 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_08_003029) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_12_221421) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "cube"
   enable_extension "earthdistance"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "favorite_golf_courses", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "golf_course_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["golf_course_id"], name: "index_favorite_golf_courses_on_golf_course_id"
+    t.index ["user_id", "golf_course_id"], name: "index_favorite_courses_on_user_and_course", unique: true
+    t.index ["user_id"], name: "index_favorite_golf_courses_on_user_id"
+  end
 
   create_table "golf_courses", force: :cascade do |t|
     t.string "address"
@@ -126,6 +136,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_08_003029) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
+  add_foreign_key "favorite_golf_courses", "golf_courses"
+  add_foreign_key "favorite_golf_courses", "users"
   add_foreign_key "group_memberships", "groups"
   add_foreign_key "group_memberships", "users"
   add_foreign_key "groups", "users", column: "owner_id"
