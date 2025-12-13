@@ -29,9 +29,9 @@ class GolfCourse < ApplicationRecord
       radius_miles * 1609.34  # Convert miles to meters
     ).select(
       "golf_courses.*",
-      "earth_distance(ll_to_earth(#{latitude}, #{longitude}), ll_to_earth(latitude, longitude)) / 1609.34 AS distance_miles"
+      ActiveRecord::Base.sanitize_sql_array([ "earth_distance(ll_to_earth(?, ?), ll_to_earth(latitude, longitude)) / 1609.34 AS distance_miles", latitude.to_f, longitude.to_f ])
     ).order(
-      Arel.sql("earth_distance(ll_to_earth(#{latitude}, #{longitude}), ll_to_earth(latitude, longitude))")
+      Arel.sql(ActiveRecord::Base.sanitize_sql_array([ "earth_distance(ll_to_earth(?, ?), ll_to_earth(latitude, longitude))", latitude.to_f, longitude.to_f ]))
     )
   end
 
@@ -41,10 +41,13 @@ class GolfCourse < ApplicationRecord
 
     # Use PostGIS earthdistance
     result = ActiveRecord::Base.connection.execute(
-      "SELECT earth_distance(
-        ll_to_earth(#{latitude}, #{longitude}),
-        ll_to_earth(#{self.latitude}, #{self.longitude})
-      ) / 1609.34 AS distance"
+      ActiveRecord::Base.sanitize_sql_array([
+        "SELECT earth_distance(ll_to_earth(?, ?), ll_to_earth(?, ?)) / 1609.34 AS distance",
+        latitude.to_f,
+        longitude.to_f,
+        self.latitude.to_f,
+        self.longitude.to_f
+      ])
     ).first
 
     result["distance"].to_f

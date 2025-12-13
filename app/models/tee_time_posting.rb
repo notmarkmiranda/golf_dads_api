@@ -23,7 +23,13 @@ class TeeTimePosting < ApplicationRecord
 
   # Find postings near a location (uses earthdistance extension)
   scope :near, ->(latitude:, longitude:, radius_miles: 25) {
-    distance_calculation = "earth_distance(ll_to_earth(#{latitude}, #{longitude}), ll_to_earth(golf_courses.latitude, golf_courses.longitude))"
+    lat = latitude.to_f
+    lng = longitude.to_f
+    distance_calculation = ActiveRecord::Base.sanitize_sql_array([
+      "earth_distance(ll_to_earth(?, ?), ll_to_earth(golf_courses.latitude, golf_courses.longitude))",
+      lat,
+      lng
+    ])
     distance_miles = "#{distance_calculation} / 1609.34"
 
     joins(:golf_course)
@@ -33,8 +39,8 @@ class TeeTimePosting < ApplicationRecord
           ll_to_earth(?, ?),
           ll_to_earth(golf_courses.latitude, golf_courses.longitude)
         ) <= ?",
-        latitude,
-        longitude,
+        lat,
+        lng,
         radius_miles * 1609.34  # Convert miles to meters
       )
       .select(
