@@ -1,6 +1,6 @@
 namespace :admin do
   desc "Make a user an admin by email"
-  task :promote, [:email] => :environment do |t, args|
+  task :promote, [ :email ] => :environment do |t, args|
     if args[:email].blank?
       puts "Usage: rails admin:promote[user@example.com]"
       exit 1
@@ -22,7 +22,7 @@ namespace :admin do
   end
 
   desc "Remove admin privileges from a user by email"
-  task :demote, [:email] => :environment do |t, args|
+  task :demote, [ :email ] => :environment do |t, args|
     if args[:email].blank?
       puts "Usage: rails admin:demote[user@example.com]"
       exit 1

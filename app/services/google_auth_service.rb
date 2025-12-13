@@ -1,5 +1,5 @@
 # app/services/google_auth_service.rb
-require 'googleauth/id_tokens'
+require "googleauth/id_tokens"
 
 class GoogleAuthService
   class << self
@@ -22,7 +22,7 @@ class GoogleAuthService
           payload
         else
           Rails.logger.error "❌ Token validation returned nil"
-          raise StandardError, 'Invalid Google ID token'
+          raise StandardError, "Invalid Google ID token"
         end
       rescue Google::Auth::IDTokens::VerificationError => e
         Rails.logger.error "❌ Google token verification failed: #{e.class} - #{e.message}"
@@ -39,13 +39,13 @@ class GoogleAuthService
     # @return [Hash] User information
     def extract_user_info(payload)
       {
-        google_id: payload['sub'],           # Google user ID (unique identifier)
-        email: payload['email'],              # User's email
-        email_verified: payload['email_verified'],
-        name: payload['name'],                # Full name
-        given_name: payload['given_name'],    # First name
-        family_name: payload['family_name'],  # Last name
-        picture: payload['picture']           # Profile picture URL
+        google_id: payload["sub"],           # Google user ID (unique identifier)
+        email: payload["email"],              # User's email
+        email_verified: payload["email_verified"],
+        name: payload["name"],                # Full name
+        given_name: payload["given_name"],    # First name
+        family_name: payload["family_name"],  # Last name
+        picture: payload["picture"]           # Profile picture URL
       }
     end
 
@@ -53,7 +53,7 @@ class GoogleAuthService
 
     def google_client_id
       # Try environment variable first (development)
-      return ENV['GOOGLE_CLIENT_ID'] if ENV['GOOGLE_CLIENT_ID'].present?
+      return ENV["GOOGLE_CLIENT_ID"] if ENV["GOOGLE_CLIENT_ID"].present?
 
       # Fall back to credentials (production)
       Rails.application.credentials.dig(:google, :client_id)

@@ -197,7 +197,7 @@ RSpec.describe GroupPolicy, type: :policy do
     context 'when user is authenticated' do
       it 'returns groups owned by or where user is a member' do
         scope = Pundit.policy_scope!(owner, Group)
-        expect(scope.to_a).to match_array([owned_group, member_group])
+        expect(scope.to_a).to match_array([ owned_group, member_group ])
         expect(scope.to_a).not_to include(other_group)
       end
     end

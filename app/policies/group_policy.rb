@@ -51,7 +51,7 @@ class GroupPolicy < ApplicationPolicy
       if user.present?
         # Return groups the user owns or is a member of
         scope.left_joins(:group_memberships)
-             .where('groups.owner_id = ? OR group_memberships.user_id = ?', user.id, user.id)
+             .where("groups.owner_id = ? OR group_memberships.user_id = ?", user.id, user.id)
              .distinct
       else
         scope.none

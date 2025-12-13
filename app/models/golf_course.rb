@@ -70,7 +70,7 @@ class GolfCourse < ApplicationRecord
 
   # Build address string from available fields
   def full_address
-    parts = [address, city, state, zip_code, country].compact.reject(&:blank?)
+    parts = [ address, city, state, zip_code, country ].compact.reject(&:blank?)
     parts.join(", ").presence
   end
 
@@ -106,7 +106,7 @@ class GolfCourse < ApplicationRecord
 
   # City, state, zip fallback (most reliable for free geocoding APIs)
   def city_state_zip
-    parts = [city, state, zip_code].compact.reject(&:blank?)
+    parts = [ city, state, zip_code ].compact.reject(&:blank?)
     parts.join(", ").presence
   end
 

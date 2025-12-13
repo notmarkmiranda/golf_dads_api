@@ -7,7 +7,7 @@ class JsonWebToken
   # @return [String] The encoded JWT token
   def self.encode(payload, exp: nil)
     payload[:exp] = exp || 24.hours.from_now.to_i
-    JWT.encode(payload, SECRET_KEY, 'HS256')
+    JWT.encode(payload, SECRET_KEY, "HS256")
   end
 
   # Decode a JWT token
@@ -16,7 +16,7 @@ class JsonWebToken
   def self.decode(token)
     return nil if token.blank?
 
-    decoded = JWT.decode(token, SECRET_KEY, true, algorithm: 'HS256')
+    decoded = JWT.decode(token, SECRET_KEY, true, algorithm: "HS256")
     HashWithIndifferentAccess.new(decoded.first)
   rescue JWT::DecodeError, JWT::ExpiredSignature
     nil

@@ -2,7 +2,7 @@ module Api
   module V1
     class FavoriteGolfCoursesController < Api::BaseController
       before_action :require_authentication
-      before_action :set_golf_course, only: [:create, :destroy]
+      before_action :set_golf_course, only: [ :create, :destroy ]
 
       # GET /api/v1/favorite_golf_courses
       def index

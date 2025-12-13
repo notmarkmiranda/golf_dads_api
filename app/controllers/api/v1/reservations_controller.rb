@@ -1,7 +1,7 @@
 module Api
   module V1
     class ReservationsController < Api::BaseController
-      before_action :set_reservation, only: [:show, :update, :destroy]
+      before_action :set_reservation, only: [ :show, :update, :destroy ]
 
       # GET /api/v1/reservations
       def index

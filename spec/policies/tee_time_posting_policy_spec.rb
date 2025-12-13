@@ -205,7 +205,7 @@ RSpec.describe TeeTimePostingPolicy, type: :policy do
     context 'when user is authenticated' do
       it 'returns public postings and postings for user groups' do
         scope = Pundit.policy_scope!(group_member, TeeTimePosting)
-        expect(scope.to_a).to match_array([public_posting, group_posting, own_group_posting])
+        expect(scope.to_a).to match_array([ public_posting, group_posting, own_group_posting ])
         expect(scope.to_a).not_to include(other_group_posting)
       end
     end

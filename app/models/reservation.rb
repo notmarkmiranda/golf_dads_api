@@ -5,7 +5,7 @@ class Reservation < ApplicationRecord
   validates :user, presence: true
   validates :tee_time_posting, presence: true
   validates :spots_reserved, presence: true, numericality: { only_integer: true, greater_than: 0 }
-  validates :user_id, uniqueness: { scope: :tee_time_posting_id, message: 'has already reserved this tee time' }
+  validates :user_id, uniqueness: { scope: :tee_time_posting_id, message: "has already reserved this tee time" }
   validate :spots_reserved_does_not_exceed_available_spots
 
   # Push notification callbacks
@@ -17,16 +17,16 @@ class Reservation < ApplicationRecord
 
     # Only include tee_time_posting if it exists (could be nil if posting was deleted)
     if tee_time_posting.present?
-      result['tee_time_posting'] = {
-        'id' => tee_time_posting.id,
-        'user_id' => tee_time_posting.user_id,
-        'course_name' => tee_time_posting.course_name,
-        'tee_time' => tee_time_posting.tee_time,
-        'available_spots' => tee_time_posting.available_spots,
-        'total_spots' => tee_time_posting.total_spots,
-        'notes' => tee_time_posting.notes,
-        'is_public' => tee_time_posting.public?,
-        'is_past' => tee_time_posting.past?
+      result["tee_time_posting"] = {
+        "id" => tee_time_posting.id,
+        "user_id" => tee_time_posting.user_id,
+        "course_name" => tee_time_posting.course_name,
+        "tee_time" => tee_time_posting.tee_time,
+        "available_spots" => tee_time_posting.available_spots,
+        "total_spots" => tee_time_posting.total_spots,
+        "notes" => tee_time_posting.notes,
+        "is_public" => tee_time_posting.public?,
+        "is_past" => tee_time_posting.past?
       }
     end
 
@@ -43,7 +43,7 @@ class Reservation < ApplicationRecord
     available += spots_reserved_was.to_i if persisted? && spots_reserved_was.present?
 
     if spots_reserved > available
-      errors.add(:spots_reserved, 'cannot exceed available spots on the tee time posting')
+      errors.add(:spots_reserved, "cannot exceed available spots on the tee time posting")
     end
   end
 

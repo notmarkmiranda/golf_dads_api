@@ -2,7 +2,7 @@
 # The values disaplayed here are the default ones. Uncomment and change them to fit your needs.
 Avo.configure do |config|
   ## == Routing ==
-  config.root_path = '/avo'
+  config.root_path = "/avo"
   # used only when you have custom `map` configuration in your config.ru
   # config.prefix_path = "/internal"
 
@@ -22,7 +22,7 @@ Avo.configure do |config|
   config.authenticate_with do
     # Use HTTP Basic Auth with User model validation
     # Only users with admin: true can access Avo
-    authenticate_or_request_with_http_basic('Avo Admin') do |email, password|
+    authenticate_or_request_with_http_basic("Avo Admin") do |email, password|
       user = User.find_by(email_address: email)
       user&.authenticate(password) && user.admin?
     end

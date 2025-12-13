@@ -8,6 +8,6 @@ class CreateReservations < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :reservations, [:user_id, :tee_time_posting_id], unique: true
+    add_index :reservations, [ :user_id, :tee_time_posting_id ], unique: true
   end
 end

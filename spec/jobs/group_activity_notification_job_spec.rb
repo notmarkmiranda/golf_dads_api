@@ -15,7 +15,7 @@ RSpec.describe GroupActivityNotificationJob, type: :job do
       user: poster,
       golf_course: golf_course,
       tee_time: 2.days.from_now.change(hour: 10, min: 30),
-      groups: [group]
+      groups: [ group ]
     )
   end
 

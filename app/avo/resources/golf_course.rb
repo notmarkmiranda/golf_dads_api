@@ -21,7 +21,7 @@ class Avo::Resources::GolfCourse < Avo::BaseResource
     field :phone, as: :text
     field :website, as: :text
     field :created_at, as: :date_time, readonly: true
-    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
+    field :updated_at, as: :date_time, readonly: true, hide_on: [ :index ]
     field :tee_time_postings, as: :has_many
   end
 end

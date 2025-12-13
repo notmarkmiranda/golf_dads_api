@@ -7,12 +7,12 @@ module Api
         query = params[:query]
 
         if query.blank?
-          render json: { error: 'Query parameter required' }, status: :bad_request
+          render json: { error: "Query parameter required" }, status: :bad_request
           return
         end
 
         # Search local database first
-        local_courses = GolfCourse.where('name ILIKE ?', "%#{query}%")
+        local_courses = GolfCourse.where("name ILIKE ?", "%#{query}%")
                                    .limit(10)
                                    .map { |c| course_json(c) }
 
@@ -25,9 +25,9 @@ module Api
         all_courses = (local_courses + api_courses).uniq do |c|
           # Use external_id if available, otherwise use normalized name + location
           if c[:external_id].present?
-            [:external_id, c[:external_id]]
+            [ :external_id, c[:external_id] ]
           else
-            [:name, c[:name]&.downcase&.strip, c[:city]&.downcase&.strip, c[:state]&.downcase&.strip]
+            [ :name, c[:name]&.downcase&.strip, c[:city]&.downcase&.strip, c[:state]&.downcase&.strip ]
           end
         end
 
@@ -42,7 +42,7 @@ module Api
         radius = params[:radius]&.to_i || current_user.preferred_radius_miles || 25
 
         unless latitude && longitude
-          render json: { error: 'Latitude and longitude required' }, status: :bad_request
+          render json: { error: "Latitude and longitude required" }, status: :bad_request
           return
         end
 
@@ -61,7 +61,7 @@ module Api
         course_data = params[:golf_course]
 
         if course_data.blank?
-          render json: { error: 'Golf course data required' }, status: :bad_request
+          render json: { error: "Golf course data required" }, status: :bad_request
           return
         end
 
@@ -74,7 +74,7 @@ module Api
         if course
           render json: { golf_course: course_json(course) }, status: :created
         else
-          render json: { error: 'Failed to cache course' }, status: :unprocessable_entity
+          render json: { error: "Failed to cache course" }, status: :unprocessable_entity
         end
       end
 

@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   has_secure_password validations: false
   has_many :sessions, dependent: :destroy
-  has_many :owned_groups, class_name: 'Group', foreign_key: 'owner_id', dependent: :destroy
+  has_many :owned_groups, class_name: "Group", foreign_key: "owner_id", dependent: :destroy
   has_many :group_memberships, dependent: :destroy
   has_many :groups, through: :group_memberships
   has_many :tee_time_postings, dependent: :destroy
@@ -33,7 +33,7 @@ class User < ApplicationRecord
   # Normalize venmo_handle to always start with @
   normalizes :venmo_handle, with: ->(v) {
     return nil if v.blank?
-    v.start_with?('@') ? v : "@#{v}"
+    v.start_with?("@") ? v : "@#{v}"
   }
 
   # OAuth methods
@@ -78,7 +78,7 @@ class User < ApplicationRecord
         name: user_info[:name],
         avatar_url: user_info[:picture],
         # Set provider/uid for OAuth tracking
-        provider: 'google',
+        provider: "google",
         uid: user_info[:google_id],
         # No password needed for Google auth users
         password_digest: nil

@@ -11,12 +11,12 @@ module Api
     private
 
     def authenticate_request
-      header = request.headers['Authorization']
-      token = header.split(' ').last if header
+      header = request.headers["Authorization"]
+      token = header.split(" ").last if header
 
       begin
         decoded = JsonWebToken.decode(token)
-        @current_user = User.find(decoded['user_id']) if decoded
+        @current_user = User.find(decoded["user_id"]) if decoded
       rescue ActiveRecord::RecordNotFound
         @current_user = nil
       end
@@ -26,7 +26,7 @@ module Api
       return true if current_user
 
       error_response(
-        message: 'Unauthorized',
+        message: "Unauthorized",
         status: :unauthorized
       )
       false

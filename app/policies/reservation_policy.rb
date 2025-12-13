@@ -36,7 +36,7 @@ class ReservationPolicy < ApplicationPolicy
       if user.present?
         # Return user's own reservations + reservations on their postings
         scope.left_joins(:tee_time_posting)
-             .where('reservations.user_id = ? OR tee_time_postings.user_id = ?', user.id, user.id)
+             .where("reservations.user_id = ? OR tee_time_postings.user_id = ?", user.id, user.id)
              .distinct
       else
         scope.none

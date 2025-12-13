@@ -151,7 +151,7 @@ RSpec.describe GolfCourse, type: :model do
           .and_return([])
         allow(Geocoder).to receive(:search)
           .with('Small Town, MT, 59001')
-          .and_return([double(latitude: 45.6789, longitude: -110.1234)])
+          .and_return([ double(latitude: 45.6789, longitude: -110.1234) ])
 
         course = create(:golf_course,
           name: 'Rural Course',

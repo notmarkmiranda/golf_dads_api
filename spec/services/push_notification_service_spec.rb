@@ -119,7 +119,7 @@ RSpec.describe PushNotificationService, type: :service do
 
     it 'sends notifications to all users' do
       result = PushNotificationService.send_to_users(
-        [user1, user2],
+        [ user1, user2 ],
         title: 'Test',
         body: 'Test body',
         data: {},
@@ -135,7 +135,7 @@ RSpec.describe PushNotificationService, type: :service do
       user2.notification_preference.update!(group_activity_enabled: false)
 
       result = PushNotificationService.send_to_users(
-        [user1, user2],
+        [ user1, user2 ],
         title: 'Test',
         body: 'Test body',
         data: {},

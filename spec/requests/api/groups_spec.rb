@@ -307,7 +307,7 @@ RSpec.describe 'Api::Groups', type: :request do
 
         # Create a tee time posting in both groups
         posting = create(:tee_time_posting, user: user, course_name: 'Test Course')
-        posting.groups << [group, other_group]
+        posting.groups << [ group, other_group ]
 
         expect {
           delete "/api/v1/groups/#{group.id}", headers: { 'Authorization' => "Bearer #{token}" }
@@ -340,7 +340,7 @@ RSpec.describe 'Api::Groups', type: :request do
         # Shared posting (in this group and another)
         other_group = create(:group, owner: user, name: 'Other Group')
         shared_posting = create(:tee_time_posting, user: user, course_name: 'Shared Course')
-        shared_posting.groups << [group, other_group]
+        shared_posting.groups << [ group, other_group ]
 
         # Public posting (no groups)
         public_posting = create(:tee_time_posting, user: user, course_name: 'Public Course')

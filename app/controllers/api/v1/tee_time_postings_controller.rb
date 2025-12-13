@@ -1,7 +1,7 @@
 module Api
   module V1
     class TeeTimePostingsController < Api::BaseController
-      before_action :set_tee_time_posting, only: [:show, :update, :destroy]
+      before_action :set_tee_time_posting, only: [ :show, :update, :destroy ]
 
       # GET /api/v1/tee_time_postings
       # Optional params: latitude, longitude, radius (for location-based filtering)

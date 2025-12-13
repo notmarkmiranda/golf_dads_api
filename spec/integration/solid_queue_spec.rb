@@ -81,7 +81,7 @@ RSpec.describe 'Solid Queue Integration', type: :integration do
       TestEnqueueJob.perform_later('test message')
       job = SolidQueue::Job.last
 
-      expect(job.arguments).to eq(['test message'])
+      expect(job.arguments).to eq([ 'test message' ])
     end
 
     it 'stores job queue name' do

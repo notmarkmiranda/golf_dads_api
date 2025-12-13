@@ -31,12 +31,12 @@ module ErrorHandler
   def handle_unauthorized(exception)
     if current_user.nil?
       error_response(
-        message: 'Unauthorized',
+        message: "Unauthorized",
         status: :unauthorized
       )
     else
       error_response(
-        message: 'You are not authorized to perform this action',
+        message: "You are not authorized to perform this action",
         status: :forbidden
       )
     end
@@ -61,7 +61,7 @@ module ErrorHandler
   # Handle missing parameter errors (400 Bad Request)
   def handle_parameter_missing(exception)
     error_response(
-      message: 'Required parameter is missing',
+      message: "Required parameter is missing",
       status: :bad_request,
       details: { parameter: exception.param }
     )

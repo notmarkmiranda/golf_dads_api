@@ -12,6 +12,6 @@ class CreateGroupInvitations < ActiveRecord::Migration[8.1]
 
     add_index :group_invitations, :token, unique: true
     add_index :group_invitations, :invitee_email
-    add_index :group_invitations, [:group_id, :invitee_email, :status]
+    add_index :group_invitations, [ :group_id, :invitee_email, :status ]
   end
 end

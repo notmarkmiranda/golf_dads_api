@@ -19,7 +19,7 @@ class CreateGolfCourses < ActiveRecord::Migration[8.1]
     end
 
     add_index :golf_courses, :external_api_id, unique: true
-    add_index :golf_courses, [:latitude, :longitude]
+    add_index :golf_courses, [ :latitude, :longitude ]
     add_index :golf_courses, :zip_code
     add_index :golf_courses, :name
   end

@@ -1,6 +1,6 @@
 class Avo::Resources::TeeTimePosting < Avo::BaseResource
   self.title = :course_name
-  self.includes = [:user, :groups, :golf_course]
+  self.includes = [ :user, :groups, :golf_course ]
 
   self.search = {
     query: -> { query.where("course_name ILIKE ? OR notes ILIKE ?", "%#{q}%", "%#{q}%") }
@@ -15,9 +15,9 @@ class Avo::Resources::TeeTimePosting < Avo::BaseResource
     field :course_name, as: :text, required: true
     field :total_spots, as: :number, required: true, min: 1, max: 4, help: "Total spots available (1-4)"
     field :available_spots, as: :number, readonly: true, help: "Calculated automatically: total_spots - sum(reservations)"
-    field :notes, as: :textarea, hide_on: [:index]
+    field :notes, as: :textarea, hide_on: [ :index ]
     field :created_at, as: :date_time, readonly: true
-    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
+    field :updated_at, as: :date_time, readonly: true, hide_on: [ :index ]
     field :reservations, as: :has_many
   end
 end

@@ -9,12 +9,12 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # Allow requests from any origin in development
     # In production, this will allow iOS app requests (which don't have an origin header)
-    origins '*'
+    origins "*"
 
-    resource '*',
+    resource "*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
-      expose: ['Authorization'],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+      expose: [ "Authorization" ],
       credentials: false
   end
 end

@@ -174,7 +174,7 @@ RSpec.describe ReservationPolicy, type: :policy do
     context 'when user is authenticated' do
       it 'returns user own reservations and reservations on their postings' do
         scope = Pundit.policy_scope!(reserver, Reservation)
-        expect(scope.to_a).to match_array([own_reservation, reservation_on_own_posting])
+        expect(scope.to_a).to match_array([ own_reservation, reservation_on_own_posting ])
         expect(scope.to_a).not_to include(unrelated_reservation)
       end
     end

@@ -7,10 +7,10 @@ class ConvertToManyToManyGroupsTeeTimePostings < ActiveRecord::Migration[8.1]
     end
 
     # Add indexes for better query performance
-    add_index :groups_tee_time_postings, [:group_id, :tee_time_posting_id],
+    add_index :groups_tee_time_postings, [ :group_id, :tee_time_posting_id ],
               unique: true,
               name: 'index_groups_tee_time_postings_on_group_and_posting'
-    add_index :groups_tee_time_postings, [:tee_time_posting_id, :group_id],
+    add_index :groups_tee_time_postings, [ :tee_time_posting_id, :group_id ],
               name: 'index_groups_tee_time_postings_on_posting_and_group'
 
     # Migrate existing data from group_id column to join table
@@ -31,7 +31,7 @@ class ConvertToManyToManyGroupsTeeTimePostings < ActiveRecord::Migration[8.1]
   def down
     # Add back the group_id column
     add_reference :tee_time_postings, :group, null: true, foreign_key: true
-    add_index :tee_time_postings, [:group_id, :tee_time]
+    add_index :tee_time_postings, [ :group_id, :tee_time ]
 
     # Migrate data back from join table to group_id column
     # Note: This will only preserve ONE group per posting (the first one)

@@ -31,7 +31,7 @@ class TeeTimePostingPolicy < ApplicationPolicy
       if user.present?
         # Return public postings + postings in user's groups
         scope.left_joins(groups: :group_memberships)
-             .where('groups_tee_time_postings.group_id IS NULL OR group_memberships.user_id = ? OR groups.owner_id = ?',
+             .where("groups_tee_time_postings.group_id IS NULL OR group_memberships.user_id = ? OR groups.owner_id = ?",
                     user.id, user.id)
              .distinct
       else

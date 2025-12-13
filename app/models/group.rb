@@ -1,6 +1,6 @@
 class Group < ApplicationRecord
   # Associations
-  belongs_to :owner, class_name: 'User'
+  belongs_to :owner, class_name: "User"
   has_many :group_memberships, dependent: :destroy
   has_many :members, through: :group_memberships, source: :user
   has_and_belongs_to_many :tee_time_postings
@@ -21,7 +21,7 @@ class Group < ApplicationRecord
 
   def as_json(options = {})
     super(options).merge(
-      'member_names' => members.pluck(:email_address)
+      "member_names" => members.pluck(:email_address)
     )
   end
 

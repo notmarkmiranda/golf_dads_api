@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership, :members, :update_notification_settings]
+      before_action :set_group, only: [ :show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership, :members, :update_notification_settings ]
 
       # GET /api/v1/groups
       def index
@@ -64,7 +64,7 @@ module Api
         authorize @group, :update?
 
         @group.regenerate_invite_code!
-        render json: { group: @group.as_json, message: 'Invite code regenerated successfully' }, status: :ok
+        render json: { group: @group.as_json, message: "Invite code regenerated successfully" }, status: :ok
       rescue ActiveRecord::RecordInvalid => e
         error_response(e.message, :unprocessable_entity)
       end
@@ -83,18 +83,18 @@ module Api
         invite_code = params[:invite_code]
 
         if invite_code.blank?
-          return error_response('Invite code is required', :bad_request)
+          return error_response("Invite code is required", :bad_request)
         end
 
         group = Group.find_by_invite_code(invite_code)
 
         if group.nil?
-          return error_response('Invalid invite code', :not_found)
+          return error_response("Invalid invite code", :not_found)
         end
 
         # Check if already a member
         if group.members.include?(current_user)
-          return error_response('You are already a member of this group', :unprocessable_entity)
+          return error_response("You are already a member of this group", :unprocessable_entity)
         end
 
         # Add user to group
@@ -117,14 +117,14 @@ module Api
 
         # Block if user is the owner
         if @group.owner_id == current_user.id
-          return error_response(message: 'Owner must transfer ownership before leaving', status: :forbidden)
+          return error_response(message: "Owner must transfer ownership before leaving", status: :forbidden)
         end
 
         # Find and destroy the membership
         membership = @group.group_memberships.find_by(user: current_user)
 
         if membership.nil?
-          return error_response(message: 'You are not a member of this group', status: :unprocessable_entity)
+          return error_response(message: "You are not a member of this group", status: :unprocessable_entity)
         end
 
         membership.destroy
@@ -132,7 +132,7 @@ module Api
         # Regenerate invite code for security when a member leaves
         @group.regenerate_invite_code!
 
-        render json: { message: 'Successfully left the group' }, status: :ok
+        render json: { message: "Successfully left the group" }, status: :ok
       end
 
       # DELETE /api/v1/groups/:group_id/members/:user_id
@@ -147,20 +147,20 @@ module Api
 
         # Prevent removing the owner
         if user_to_remove.id == @group.owner_id
-          return error_response(message: 'Cannot remove the group owner', status: :unprocessable_entity)
+          return error_response(message: "Cannot remove the group owner", status: :unprocessable_entity)
         end
 
         # Find and destroy the membership
         membership = @group.group_memberships.find_by(user: user_to_remove)
 
         if membership.nil?
-          return error_response(message: 'User is not a member of this group', status: :unprocessable_entity)
+          return error_response(message: "User is not a member of this group", status: :unprocessable_entity)
         end
 
         membership.destroy
-        render json: { message: 'Member removed successfully' }, status: :ok
+        render json: { message: "Member removed successfully" }, status: :ok
       rescue ActiveRecord::RecordNotFound
-        error_response(message: 'User not found', status: :not_found)
+        error_response(message: "User not found", status: :not_found)
       end
 
       # POST /api/v1/groups/:id/transfer_ownership
@@ -171,7 +171,7 @@ module Api
         new_owner_id = params[:new_owner_id]
 
         if new_owner_id.blank?
-          return error_response(message: 'New owner ID is required', status: :bad_request)
+          return error_response(message: "New owner ID is required", status: :bad_request)
         end
 
         # Find the new owner
@@ -179,20 +179,20 @@ module Api
 
         # Prevent transferring to self (check before membership)
         if new_owner.id == @group.owner_id
-          return error_response(message: 'User is already the owner', status: :unprocessable_entity)
+          return error_response(message: "User is already the owner", status: :unprocessable_entity)
         end
 
         # Verify new owner is a member
         unless @group.members.include?(new_owner)
-          return error_response(message: 'New owner must be a member of the group', status: :unprocessable_entity)
+          return error_response(message: "New owner must be a member of the group", status: :unprocessable_entity)
         end
 
         # Transfer ownership
         @group.update!(owner: new_owner)
 
-        render json: { group: @group.as_json, message: 'Ownership transferred successfully' }, status: :ok
+        render json: { group: @group.as_json, message: "Ownership transferred successfully" }, status: :ok
       rescue ActiveRecord::RecordNotFound
-        error_response(message: 'User not found', status: :not_found)
+        error_response(message: "User not found", status: :not_found)
       rescue ActiveRecord::RecordInvalid => e
         error_response(message: e.message, status: :unprocessable_entity)
       end
@@ -207,7 +207,7 @@ module Api
           {
             id: member.id,
             email: member.email_address,
-            name: member.email_address.split('@').first,
+            name: member.email_address.split("@").first,
             joined_at: membership.created_at
           }
         end
@@ -234,7 +234,7 @@ module Api
       def set_group
         @group = Group.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        not_found_error_response('Group not found')
+        not_found_error_response("Group not found")
       end
 
       def group_params

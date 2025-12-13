@@ -15,6 +15,6 @@ class RemoveGroupInvitations < ActiveRecord::Migration[8.1]
     end
 
     add_index :group_invitations, :token, unique: true
-    add_index :group_invitations, [:group_id, :invitee_email, :status]
+    add_index :group_invitations, [ :group_id, :invitee_email, :status ]
   end
 end

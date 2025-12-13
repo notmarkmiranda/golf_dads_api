@@ -13,7 +13,7 @@ class CreateTeeTimePostings < ActiveRecord::Migration[8.1]
     end
 
     add_index :tee_time_postings, :tee_time
-    add_index :tee_time_postings, [:user_id, :tee_time]
-    add_index :tee_time_postings, [:group_id, :tee_time]
+    add_index :tee_time_postings, [ :user_id, :tee_time ]
+    add_index :tee_time_postings, [ :group_id, :tee_time ]
   end
 end

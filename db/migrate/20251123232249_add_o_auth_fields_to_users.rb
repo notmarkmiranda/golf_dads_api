@@ -6,6 +6,6 @@ class AddOAuthFieldsToUsers < ActiveRecord::Migration[8.1]
     add_column :users, :avatar_url, :string
 
     # Index for fast OAuth user lookups
-    add_index :users, [:provider, :uid], unique: true
+    add_index :users, [ :provider, :uid ], unique: true
   end
 end

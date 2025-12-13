@@ -26,7 +26,7 @@ RSpec.describe 'Api::BaseController', type: :request do
     # Add routes for the test controller
     Rails.application.routes.draw do
       namespace :api do
-        resources :test, only: [:index, :show] do
+        resources :test, only: [ :index, :show ] do
           collection do
             get :protected_action
           end

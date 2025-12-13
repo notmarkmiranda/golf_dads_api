@@ -1,6 +1,6 @@
 class Avo::Resources::Group < Avo::BaseResource
   self.title = :name
-  self.includes = [:owner]
+  self.includes = [ :owner ]
 
   self.search = {
     query: -> { query.where("name ILIKE ?", "%#{q}%") }
@@ -9,10 +9,10 @@ class Avo::Resources::Group < Avo::BaseResource
   def fields
     field :id, as: :id, link_to_record: true
     field :name, as: :text, required: true
-    field :description, as: :textarea, hide_on: [:index]
+    field :description, as: :textarea, hide_on: [ :index ]
     field :owner, as: :belongs_to, required: true, searchable: true
     field :created_at, as: :date_time, readonly: true
-    field :updated_at, as: :date_time, readonly: true, hide_on: [:index]
+    field :updated_at, as: :date_time, readonly: true, hide_on: [ :index ]
     field :group_memberships, as: :has_many
     field :members, as: :has_many, through: :group_memberships
     field :tee_time_postings, as: :has_many

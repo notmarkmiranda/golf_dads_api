@@ -1,9 +1,9 @@
 module Api
   module V1
     class AuthController < Api::BaseController
-      skip_before_action :authenticate_request, only: [:signup, :login, :google]
+      skip_before_action :authenticate_request, only: [ :signup, :login, :google ]
 
-      # POST /api/v1/auth/signup
+    # POST /api/v1/auth/signup
     def signup
       user = User.new(signup_params)
 
@@ -18,7 +18,7 @@ module Api
       end
     end
 
-      # POST /api/v1/auth/login
+    # POST /api/v1/auth/login
     def login
       user = User.find_by(email_address: params[:email]&.strip&.downcase)
 
@@ -30,19 +30,19 @@ module Api
         }, status: :ok
       else
         error_response(
-          message: 'Invalid email or password',
+          message: "Invalid email or password",
           status: :unauthorized
         )
       end
     end
 
-      # POST /api/v1/auth/google
+    # POST /api/v1/auth/google
     def google
       id_token = params[:idToken] || params[:id_token]
 
       if id_token.blank?
         return error_response(
-          message: 'ID token is required',
+          message: "ID token is required",
           status: :bad_request
         )
       end
@@ -57,7 +57,7 @@ module Api
         # Verify email is confirmed by Google
         unless user_info[:email_verified]
           return error_response(
-            message: 'Email not verified by Google',
+            message: "Email not verified by Google",
             status: :unauthorized
           )
         end
@@ -77,14 +77,14 @@ module Api
       rescue Google::Auth::IDTokens::VerificationError => e
         Rails.logger.error "Google Sign-In failed: #{e.message}"
         error_response(
-          message: 'Invalid Google ID token',
+          message: "Invalid Google ID token",
           status: :unauthorized
         )
 
       rescue StandardError => e
         Rails.logger.error "Google Sign-In error: #{e.class} - #{e.message}"
         error_response(
-          message: 'Authentication failed',
+          message: "Authentication failed",
           status: :internal_server_error
         )
       end

@@ -183,13 +183,13 @@ RSpec.describe 'Api::TeeTimePostings', type: :request do
       end
 
       it 'creates a group posting' do
-        params = valid_params.deep_merge(tee_time_posting: { group_ids: [group.id] })
+        params = valid_params.deep_merge(tee_time_posting: { group_ids: [ group.id ] })
 
         post '/api/v1/tee_time_postings', params: params, headers: { 'Authorization' => "Bearer #{token}" }
 
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
-        expect(json['tee_time_posting']['group_ids']).to eq([group.id])
+        expect(json['tee_time_posting']['group_ids']).to eq([ group.id ])
       end
 
       it 'creates posting without optional fields' do
