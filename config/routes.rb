@@ -22,6 +22,7 @@ Rails.application.routes.draw do
           post 'leave'
           delete 'members/:user_id', to: 'groups#remove_member', as: 'remove_member'
           post 'transfer_ownership'
+          patch 'notification_settings', to: 'groups#update_notification_settings'
         end
         collection do
           post 'join_with_code'
@@ -48,6 +49,14 @@ Rails.application.routes.draw do
       end
 
       resources :favorite_golf_courses, only: [:index, :create, :destroy]
+
+      resources :device_tokens, only: [:create] do
+        collection do
+          delete ':token', to: 'device_tokens#destroy'
+        end
+      end
+
+      resource :notification_preferences, only: [:show, :update]
     end
   end
 

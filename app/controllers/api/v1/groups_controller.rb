@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < Api::BaseController
-      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership, :members]
+      before_action :set_group, only: [:show, :update, :destroy, :regenerate_code, :tee_time_postings, :leave, :remove_member, :transfer_ownership, :members, :update_notification_settings]
 
       # GET /api/v1/groups
       def index
@@ -215,6 +215,20 @@ module Api
         render json: { members: members_data }, status: :ok
       end
 
+      # PATCH /api/v1/groups/:id/notification_settings
+      # Update notification settings for the current user in this group
+      def update_notification_settings
+        authorize @group, :show?
+
+        setting = current_user.group_notification_settings.find_or_initialize_by(group: @group)
+
+        if setting.update(notification_settings_params)
+          render json: group_notification_setting_response(setting), status: :ok
+        else
+          validation_error_response(setting.errors.messages)
+        end
+      end
+
       private
 
       def set_group
@@ -225,6 +239,19 @@ module Api
 
       def group_params
         params.require(:group).permit(:name, :description)
+      end
+
+      def notification_settings_params
+        params.require(:notification_settings).permit(:muted)
+      end
+
+      def group_notification_setting_response(setting)
+        {
+          id: setting.id,
+          user_id: setting.user_id,
+          group_id: setting.group_id,
+          muted: setting.muted
+        }
       end
     end
   end
