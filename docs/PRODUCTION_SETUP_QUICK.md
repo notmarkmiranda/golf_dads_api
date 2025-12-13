@@ -18,30 +18,39 @@ You just need **2 quick steps** to complete setup:
 3. Scroll to "Secret Files" section → Click "Add Secret File"
 
 4. Set:
-   - **Filename:** `config/firebase-service-account.json`
+   - **Filename:** `firebaseserviceaccount.json` (no path separator - Render doesn't allow `/`)
    - **Contents:** (paste the entire JSON file)
 
 5. Click "Save Changes"
 
-6. Service will redeploy automatically
+6. Update Environment Variable:
+   - Set `FCM_CREDENTIALS_PATH=/etc/secrets/firebaseserviceaccount.json`
+   - Render places Secret Files at `/etc/secrets/`
+
+7. Service will redeploy automatically
 
 ---
 
-## Step 2: Load Solid Queue Schema (30 seconds)
+## Step 2: Create Solid Queue Tables (1 minute)
 
-1. Go to Render Dashboard → Your service → Shell tab
+1. Wait for redeploy from Step 1 to complete
 
-2. Run:
+2. Go to Render Dashboard → Your service → Shell tab
+
+3. Run:
    ```bash
-   rails db:schema:load:queue
+   rails solid_queue:setup_tables
    ```
 
-3. You should see:
+4. You should see:
    ```
-   Created database 'solid_queue'
+   Creating solid_queue_jobs...
+   Creating solid_queue_processes...
+   ...
+   ✓ All Solid Queue tables created successfully!
    ```
 
-**Done!** This creates the Solid Queue tables.
+**Done!** This creates all the Solid Queue tables.
 
 ---
 
@@ -67,7 +76,7 @@ Run in production console:
 
 ```ruby
 # Quick check
-puts "FCM: #{File.exist?(Rails.root.join('config/firebase-service-account.json'))}"
+puts "FCM: #{File.exist?('/etc/secrets/firebaseserviceaccount.json')}"
 puts "Tables: #{ActiveRecord::Base.connection.table_exists?('solid_queue_jobs')}"
 puts "Prefs: #{User.count == NotificationPreference.count}"
 

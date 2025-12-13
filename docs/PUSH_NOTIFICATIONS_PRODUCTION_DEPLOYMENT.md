@@ -1,15 +1,16 @@
 # Push Notifications - Production Deployment Guide
 
-**Status:** 🚨 NEEDS DEPLOYMENT
+**Status:** ✅ DEPLOYED
 **Date:** December 13, 2024
 
 ---
 
-## Issues Found in Production
+## Deployment Complete
 
-From QA testing, we found:
-1. ❌ FCM credentials file missing
-2. ❌ Solid Queue tables not created
+Phase 1 & 2 push notifications are now fully deployed to production:
+1. ✅ FCM credentials file configured
+2. ✅ Solid Queue tables created
+3. ✅ All migrations applied
 
 ---
 
@@ -38,11 +39,14 @@ If not, download it from Firebase Console:
 4. Scroll down to "Secret Files" section
 5. Click "Add Secret File"
 6. Configure:
-   - **Filename:** `config/firebase-service-account.json`
+   - **Filename:** `firebaseserviceaccount.json` (no path separator - Render doesn't allow `/`)
    - **Contents:** Paste the entire JSON file contents
 7. Click "Save Changes"
+8. Update Environment Variable:
+   - Set `FCM_CREDENTIALS_PATH=/etc/secrets/firebaseserviceaccount.json`
+   - Render places Secret Files at `/etc/secrets/`
 
-This will make the file available at `/opt/render/project/src/config/firebase-service-account.json` in production.
+This will make the file available at `/etc/secrets/firebaseserviceaccount.json` in production.
 
 ---
 
@@ -78,18 +82,18 @@ Running: rails db:migrate
 == 20251213043331 AddNotificationPreferencesToExistingUsers: migrated ========
 ```
 
-### Solid Queue Schema (Separate Step Required)
+### Solid Queue Tables (Separate Step Required)
 
-**Important:** Solid Queue uses a separate database configuration and needs a manual step:
+**Important:** Solid Queue tables need to be created manually:
 
 After deployment completes, run in Render Shell:
 ```bash
-rails db:schema:load:queue
+rails solid_queue:setup_tables
 ```
 
-This creates the `solid_queue_*` tables.
+This creates all the `solid_queue_*` tables.
 
-**Why?** Solid Queue tables go in a separate migration path (`db/queue_migrate/`) that requires explicit loading.
+**Why?** Solid Queue uses a separate schema file (`db/queue_schema.rb`) that can't be loaded in production due to environment protection. The `solid_queue:setup_tables` rake task manually creates all required tables.
 
 ---
 
@@ -284,14 +288,14 @@ puts "PRODUCTION DEPLOYMENT VERIFICATION"
 puts "=" * 60
 
 checks = {
-  "FCM file exists" => File.exist?(Rails.root.join('config/firebase-service-account.json')),
+  "FCM file exists" => File.exist?('/etc/secrets/firebaseserviceaccount.json'),
   "FCM project ID set" => FCM_CONFIG[:project_id].present?,
   "Solid Queue tables exist" => ActiveRecord::Base.connection.table_exists?('solid_queue_jobs'),
   "Device tokens table" => ActiveRecord::Base.connection.table_exists?('device_tokens'),
   "Notification preferences table" => ActiveRecord::Base.connection.table_exists?('notification_preferences'),
   "All users have preferences" => User.count == NotificationPreference.count,
   "Solid Queue adapter active" => ActiveJob::Base.queue_adapter.is_a?(ActiveJob::QueueAdapters::SolidQueueAdapter),
-  "Can create notification log" => NotificationLog.new(user: User.first, notification_type: 'test', title: 'test', body: 'test').valid?
+  "Can create notification log" => NotificationLog.new(user: User.first, notification_type: 'reminder_24h', status: 'pending', title: 'test', body: 'test').valid?
 }
 
 checks.each do |check, result|
