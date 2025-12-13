@@ -8,6 +8,12 @@ class User < ApplicationRecord
   has_many :reservations, dependent: :destroy
   has_many :favorite_golf_courses, dependent: :destroy
   has_many :favorites, through: :favorite_golf_courses, source: :golf_course
+  has_many :device_tokens, dependent: :destroy
+  has_one :notification_preference, dependent: :destroy
+  has_many :group_notification_settings, dependent: :destroy
+  has_many :notification_logs, dependent: :destroy
+
+  after_create :create_default_notification_preference
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
@@ -96,5 +102,11 @@ class User < ApplicationRecord
   # Check if course is favorited
   def favorited?(golf_course)
     favorites.exists?(golf_course.id)
+  end
+
+  private
+
+  def create_default_notification_preference
+    build_notification_preference.save!
   end
 end

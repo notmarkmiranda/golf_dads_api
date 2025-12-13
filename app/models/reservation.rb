@@ -8,6 +8,10 @@ class Reservation < ApplicationRecord
   validates :user_id, uniqueness: { scope: :tee_time_posting_id, message: 'has already reserved this tee time' }
   validate :spots_reserved_does_not_exceed_available_spots
 
+  # Push notification callbacks
+  after_create :notify_reservation_created
+  after_destroy :notify_reservation_cancelled
+
   def as_json(options = {})
     result = super(options)
 
@@ -41,5 +45,13 @@ class Reservation < ApplicationRecord
     if spots_reserved > available
       errors.add(:spots_reserved, 'cannot exceed available spots on the tee time posting')
     end
+  end
+
+  def notify_reservation_created
+    ReservationNotificationJob.perform_later(id, action: "created")
+  end
+
+  def notify_reservation_cancelled
+    ReservationNotificationJob.perform_later(id, action: "cancelled")
   end
 end

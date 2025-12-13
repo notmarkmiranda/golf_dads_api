@@ -5,6 +5,9 @@ class TeeTimePosting < ApplicationRecord
   has_and_belongs_to_many :groups
   has_many :reservations, dependent: :destroy
 
+  # Push notification callbacks
+  after_create :notify_group_members, if: :has_groups?
+
   # Validations
   validates :user, presence: true
   validates :tee_time, presence: true
@@ -120,5 +123,13 @@ class TeeTimePosting < ApplicationRecord
     if course_name.blank? && golf_course.nil?
       errors.add(:base, 'Must specify either course name or golf course')
     end
+  end
+
+  def has_groups?
+    groups.any?
+  end
+
+  def notify_group_members
+    GroupActivityNotificationJob.perform_later(id)
   end
 end

@@ -3,6 +3,10 @@ require 'rails_helper'
 RSpec.describe User, type: :model do
   describe 'associations' do
     it { should have_many(:sessions).dependent(:destroy) }
+    it { should have_many(:device_tokens).dependent(:destroy) }
+    it { should have_one(:notification_preference).dependent(:destroy) }
+    it { should have_many(:group_notification_settings).dependent(:destroy) }
+    it { should have_many(:notification_logs).dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -204,6 +208,24 @@ RSpec.describe User, type: :model do
       decoded = JsonWebToken.decode(token)
       exp_time = Time.at(decoded['exp'])
       expect(exp_time).to be_within(5.seconds).of(24.hours.from_now)
+    end
+  end
+
+  describe 'notification preferences' do
+    it 'creates default notification preference on user creation' do
+      user = create(:user)
+      expect(user.notification_preference).to be_present
+    end
+
+    it 'default notification preference has all notifications enabled' do
+      user = create(:user)
+      pref = user.notification_preference
+
+      expect(pref.reservations_enabled).to be true
+      expect(pref.group_activity_enabled).to be true
+      expect(pref.reminders_enabled).to be true
+      expect(pref.reminder_24h_enabled).to be true
+      expect(pref.reminder_2h_enabled).to be true
     end
   end
 end

@@ -10,11 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_12_221421) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_13_043331) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "cube"
   enable_extension "earthdistance"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "device_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "last_used_at"
+    t.string "platform", default: "ios", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["token"], name: "index_device_tokens_on_token", unique: true
+    t.index ["user_id", "token"], name: "index_device_tokens_on_user_id_and_token", unique: true
+    t.index ["user_id"], name: "index_device_tokens_on_user_id"
+  end
 
   create_table "favorite_golf_courses", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -58,6 +70,17 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_12_221421) do
     t.index ["user_id"], name: "index_group_memberships_on_user_id"
   end
 
+  create_table "group_notification_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "group_id", null: false
+    t.boolean "muted", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["group_id"], name: "index_group_notification_settings_on_group_id"
+    t.index ["user_id", "group_id"], name: "index_group_notification_settings_on_user_id_and_group_id", unique: true
+    t.index ["user_id"], name: "index_group_notification_settings_on_user_id"
+  end
+
   create_table "groups", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -77,6 +100,35 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_12_221421) do
     t.index ["group_id"], name: "index_groups_tee_time_postings_on_group_id"
     t.index ["tee_time_posting_id", "group_id"], name: "index_groups_tee_time_postings_on_posting_and_group"
     t.index ["tee_time_posting_id"], name: "index_groups_tee_time_postings_on_tee_time_posting_id"
+  end
+
+  create_table "notification_logs", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.json "data"
+    t.text "error_message"
+    t.string "notification_type", null: false
+    t.datetime "sent_at"
+    t.string "status", default: "pending", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["notification_type"], name: "index_notification_logs_on_notification_type"
+    t.index ["sent_at"], name: "index_notification_logs_on_sent_at"
+    t.index ["status"], name: "index_notification_logs_on_status"
+    t.index ["user_id"], name: "index_notification_logs_on_user_id"
+  end
+
+  create_table "notification_preferences", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "group_activity_enabled", default: true, null: false
+    t.boolean "reminder_24h_enabled", default: true, null: false
+    t.boolean "reminder_2h_enabled", default: true, null: false
+    t.boolean "reminders_enabled", default: true, null: false
+    t.boolean "reservations_enabled", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
   end
 
   create_table "reservations", force: :cascade do |t|
@@ -136,13 +188,18 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_12_221421) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
+  add_foreign_key "device_tokens", "users"
   add_foreign_key "favorite_golf_courses", "golf_courses"
   add_foreign_key "favorite_golf_courses", "users"
   add_foreign_key "group_memberships", "groups"
   add_foreign_key "group_memberships", "users"
+  add_foreign_key "group_notification_settings", "groups"
+  add_foreign_key "group_notification_settings", "users"
   add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "groups_tee_time_postings", "groups"
   add_foreign_key "groups_tee_time_postings", "tee_time_postings"
+  add_foreign_key "notification_logs", "users"
+  add_foreign_key "notification_preferences", "users"
   add_foreign_key "reservations", "tee_time_postings", on_delete: :cascade
   add_foreign_key "reservations", "users", on_delete: :cascade
   add_foreign_key "sessions", "users"
