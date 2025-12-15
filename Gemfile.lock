@@ -78,8 +78,8 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
-    addressable (2.8.7)
-      public_suffix (>= 2.0.2, < 7.0)
+    addressable (2.8.8)
+      public_suffix (>= 2.0.2, < 8.0)
     ast (2.4.3)
     avo (3.26.4)
       actionview (>= 6.1)
@@ -146,7 +146,7 @@ GEM
       logger
     faraday-net_http (3.4.2)
       net-http (~> 0.5)
-    fcm (1.0.8)
+    fcm (2.0.1)
       faraday (>= 1.0.0, < 3.0)
       googleauth (~> 1)
     ffi (1.17.2-aarch64-linux-gnu)
@@ -194,7 +194,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.16.0)
+    json (2.18.0)
     jsonapi-serializer (2.2.0)
       activesupport (>= 4.2)
     jwt (2.10.2)
@@ -293,7 +293,7 @@ GEM
     psych (5.2.6)
       date
       stringio
-    public_suffix (6.0.2)
+    public_suffix (7.0.0)
     puma (7.1.0)
       nio4r (~> 2.0)
     pundit (2.5.2)
@@ -488,7 +488,7 @@ DEPENDENCIES
   debug
   factory_bot_rails (~> 6.4)
   faker (~> 3.5)
-  fcm (~> 1.0)
+  fcm (~> 2.0)
   geocoder (~> 1.8)
   googleauth (~> 1.11)
   httparty (~> 0.22)

@@ -53,7 +53,7 @@ gem "httparty", "~> 0.22"
 gem "geocoder", "~> 1.8"
 
 # Firebase Cloud Messaging for push notifications
-gem "fcm", "~> 1.0"
+gem "fcm", "~> 2.0"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
