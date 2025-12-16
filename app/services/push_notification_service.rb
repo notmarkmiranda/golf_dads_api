@@ -105,7 +105,7 @@ class PushNotificationService
       )
     end
 
-    # Send notification via FCM v1 API
+    # Send notification via FCM v1 API using Google's official gem
     def send_fcm_notification(tokens:, title:, body:, data:)
       # Check if FCM is configured
       unless fcm_configured?
@@ -122,20 +122,27 @@ class PushNotificationService
       # Send to each token (FCM v1 doesn't support multicast like legacy API)
       tokens.each do |token|
         begin
-          response = fcm_client.send_v1(
-            build_message(token: token, title: title, body: body, data: data)
+          message = build_message(token: token, title: title, body: body, data: data)
+
+          response = fcm_service.send_message(
+            "projects/#{FCM_CONFIG[:project_id]}",
+            Google::Apis::FcmV1::SendMessageRequest.new(message: message)
           )
 
-          if response[:status_code] == 200
+          # If we got a response with a name, it succeeded
+          if response.name.present?
             success = true
-          else
-            # Token invalid or other error
-            invalid_tokens << token if token_invalid?(response)
+            Rails.logger.info("FCM notification sent successfully: #{response.name}")
+          end
+        rescue Google::Apis::ClientError => e
+          Rails.logger.error("FCM send error for token #{token}: #{e.message}")
+
+          # Check if token-related error (404 = not found, 400 = invalid)
+          if e.status_code == 404 || e.message.include?("not a valid FCM registration token")
+            invalid_tokens << token
           end
         rescue StandardError => e
-          Rails.logger.error("FCM send error for token #{token}: #{e.message}")
-          # Check if token-related error
-          invalid_tokens << token if e.message.include?("InvalidRegistration") || e.message.include?("NotRegistered")
+          Rails.logger.error("Unexpected FCM error for token #{token}: #{e.message}")
         end
       end
 
@@ -146,24 +153,24 @@ class PushNotificationService
       }
     end
 
-    # Build FCM v1 message payload
+    # Build FCM v1 message payload using Google's API objects
     def build_message(token:, title:, body:, data:)
-      {
+      Google::Apis::FcmV1::Message.new(
         token: token,
-        notification: {
+        notification: Google::Apis::FcmV1::Notification.new(
           title: title,
           body: body
-        },
+        ),
         data: stringify_data(data),
-        apns: {
+        apns: Google::Apis::FcmV1::ApnsConfig.new(
           payload: {
-            aps: {
-              sound: "default",
-              badge: 1
+            "aps" => {
+              "sound" => "default",
+              "badge" => 1
             }
           }
-        }
-      }
+        )
+      )
     end
 
     # Convert data hash values to strings (FCM requirement)
@@ -175,34 +182,35 @@ class PushNotificationService
     def fcm_configured?
       FCM_CONFIG[:project_id].present? &&
         FCM_CONFIG[:credentials_path].present? &&
-        File.exist?(Rails.root.join(FCM_CONFIG[:credentials_path]))
+        File.exist?(credentials_file_path)
     end
 
-    # Get FCM client instance
-    def fcm_client
-      # Use absolute path if provided, otherwise join with Rails.root
-      credentials_path = if FCM_CONFIG[:credentials_path].start_with?('/')
-                          FCM_CONFIG[:credentials_path]
-                        else
-                          Rails.root.join(FCM_CONFIG[:credentials_path]).to_s
-                        end
+    # Get the full path to credentials file
+    def credentials_file_path
+      if FCM_CONFIG[:credentials_path].start_with?('/')
+        FCM_CONFIG[:credentials_path]
+      else
+        Rails.root.join(FCM_CONFIG[:credentials_path]).to_s
+      end
+    end
 
-      # FCM v1 API requires 3 parameters:
-      # 1. API token (nil for v1, uses OAuth2 from credentials file)
-      # 2. Google Application Credentials path
-      # 3. Firebase Project ID
-      @fcm_client ||= FCM.new(
-        nil,
-        credentials_path,
-        FCM_CONFIG[:project_id]
+    # Get FCM service instance with OAuth2 authentication
+    def fcm_service
+      return @fcm_service if @fcm_service
+
+      require 'google/apis/fcm_v1'
+      require 'googleauth'
+
+      @fcm_service = Google::Apis::FcmV1::FirebaseCloudMessagingService.new
+
+      # Authenticate using service account
+      scopes = ['https://www.googleapis.com/auth/firebase.messaging']
+      @fcm_service.authorization = Google::Auth::ServiceAccountCredentials.make_creds(
+        json_key_io: File.open(credentials_file_path),
+        scope: scopes
       )
-    end
 
-    # Check if response indicates invalid token
-    def token_invalid?(response)
-      response[:status_code] == 404 ||
-        response[:body]&.include?("InvalidRegistration") ||
-        response[:body]&.include?("NotRegistered")
+      @fcm_service
     end
 
     # Remove invalid tokens from database
