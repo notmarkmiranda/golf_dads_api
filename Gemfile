@@ -44,7 +44,7 @@ gem "pundit", "~> 2.4"
 gem "jsonapi-serializer", "~> 2.2"
 
 # Admin panel
-gem "avo", "~> 3.18"
+gem "avo", "~> 3.27"
 
 # HTTP client for external APIs
 gem "httparty", "~> 0.22"
