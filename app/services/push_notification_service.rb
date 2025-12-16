@@ -123,7 +123,7 @@ class PushNotificationService
       tokens.each do |token|
         begin
           response = fcm_client.send_v1(
-            message: build_message(token: token, title: title, body: body, data: data)
+            build_message(token: token, title: title, body: body, data: data)
           )
 
           if response[:status_code] == 200
@@ -187,7 +187,12 @@ class PushNotificationService
                           Rails.root.join(FCM_CONFIG[:credentials_path]).to_s
                         end
 
+      # FCM v1 API requires 3 parameters:
+      # 1. API token (nil for v1, uses OAuth2 from credentials file)
+      # 2. Google Application Credentials path
+      # 3. Firebase Project ID
       @fcm_client ||= FCM.new(
+        nil,
         credentials_path,
         FCM_CONFIG[:project_id]
       )
