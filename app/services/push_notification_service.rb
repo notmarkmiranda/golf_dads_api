@@ -180,8 +180,15 @@ class PushNotificationService
 
     # Get FCM client instance
     def fcm_client
+      # Use absolute path if provided, otherwise join with Rails.root
+      credentials_path = if FCM_CONFIG[:credentials_path].start_with?('/')
+                          FCM_CONFIG[:credentials_path]
+                        else
+                          Rails.root.join(FCM_CONFIG[:credentials_path]).to_s
+                        end
+
       @fcm_client ||= FCM.new(
-        FCM_CONFIG[:credentials_path],
+        credentials_path,
         FCM_CONFIG[:project_id]
       )
     end
