@@ -18,6 +18,7 @@ class TeeTimePosting < ApplicationRecord
 
   # Scopes
   scope :upcoming, -> { where("tee_time > ?", Time.current) }
+  scope :recent, -> { where("tee_time > ?", 6.hours.ago) }
   scope :public_postings, -> { left_joins(:groups).where(groups: { id: nil }) }
   scope :for_group, ->(group) { joins(:groups).where(groups: { id: group.id }) }
 

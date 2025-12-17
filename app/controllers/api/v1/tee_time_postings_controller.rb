@@ -7,7 +7,8 @@ module Api
       # Optional params: latitude, longitude, radius (for location-based filtering)
       def index
         authorize TeeTimePosting
-        @tee_time_postings = policy_scope(TeeTimePosting)
+        # Only show tee times from last 6 hours onwards (hide old past tee times)
+        @tee_time_postings = policy_scope(TeeTimePosting).recent
 
         # Apply location filter if coordinates provided
         latitude = params[:latitude]&.to_f

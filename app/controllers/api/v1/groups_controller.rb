@@ -73,7 +73,8 @@ module Api
       # Get all tee time postings for a specific group
       def tee_time_postings
         authorize @group, :show?
-        @tee_time_postings = TeeTimePosting.for_group(@group)
+        # Only show tee times from last 6 hours onwards (hide old past tee times)
+        @tee_time_postings = TeeTimePosting.for_group(@group).recent
         render json: { tee_time_postings: @tee_time_postings }, status: :ok
       end
 
