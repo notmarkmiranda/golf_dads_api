@@ -187,7 +187,7 @@ class PushNotificationService
 
     # Get the full path to credentials file
     def credentials_file_path
-      if FCM_CONFIG[:credentials_path].start_with?('/')
+      if FCM_CONFIG[:credentials_path].start_with?("/")
         FCM_CONFIG[:credentials_path]
       else
         Rails.root.join(FCM_CONFIG[:credentials_path]).to_s
@@ -198,13 +198,13 @@ class PushNotificationService
     def fcm_service
       return @fcm_service if @fcm_service
 
-      require 'google/apis/fcm_v1'
-      require 'googleauth'
+      require "google/apis/fcm_v1"
+      require "googleauth"
 
       @fcm_service = Google::Apis::FcmV1::FirebaseCloudMessagingService.new
 
       # Authenticate using service account
-      scopes = ['https://www.googleapis.com/auth/firebase.messaging']
+      scopes = [ "https://www.googleapis.com/auth/firebase.messaging" ]
       @fcm_service.authorization = Google::Auth::ServiceAccountCredentials.make_creds(
         json_key_io: File.open(credentials_file_path),
         scope: scopes
