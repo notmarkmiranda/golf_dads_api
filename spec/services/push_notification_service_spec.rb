@@ -5,11 +5,15 @@ RSpec.describe PushNotificationService, type: :service do
   let(:device_token) { create(:device_token, user: user) }
 
   before do
-    # Stub FCM configuration and client for all tests
+    # Stub FCM configuration and service for all tests
     stub_const('FCM_CONFIG', { project_id: 'test-project', credentials_path: 'config/test-credentials.json' })
     allow(File).to receive(:exist?).and_call_original
     allow(File).to receive(:exist?).with(Rails.root.join('config/test-credentials.json')).and_return(true)
-    allow(PushNotificationService).to receive(:fcm_client).and_return(double(send_v1: { status_code: 200 }))
+
+    # Mock the send_fcm_notification method to return success
+    allow(PushNotificationService).to receive(:send_fcm_notification).and_return(
+      { success: true, error: nil, invalid_tokens: [] }
+    )
   end
 
   describe '.send_to_user' do
