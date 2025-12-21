@@ -15,7 +15,7 @@ This API serves as the backend for an iOS application that allows golfers to pos
 
 ### Authentication & Authorization
 - **Rails 8 Authentication** - Built-in `has_secure_password` with bcrypt
-- **JWT** - Token-based authentication for API (24-hour expiration)
+- **JWT** - Token-based authentication for API (30-day expiration, configurable via JWT_EXPIRATION_DAYS)
 - **Google OAuth** - Server-side token verification for Google Sign-In
 - **Pundit** (installed) - Authorization policies
 
@@ -1358,7 +1358,7 @@ The JsonWebToken service handles JWT encoding and decoding for API authenticatio
 **Methods:**
 - `JsonWebToken.encode(payload, exp: nil)` - Encodes a payload into a JWT token
   - `payload` (Hash): Data to encode in the token
-  - `exp` (Integer, optional): Expiration time (defaults to 24 hours from now)
+  - `exp` (Integer, optional): Expiration time (defaults to JWT_EXPIRATION_DAYS env var, or 30 days)
   - Returns: JWT token string
 - `JsonWebToken.decode(token)` - Decodes a JWT token
   - `token` (String): JWT token to decode
@@ -1366,7 +1366,7 @@ The JsonWebToken service handles JWT encoding and decoding for API authenticatio
 
 **Features:**
 - HS256 algorithm using Rails secret_key_base
-- 24-hour token expiration by default
+- 30-day token expiration by default (configurable via JWT_EXPIRATION_DAYS environment variable)
 - Graceful handling of expired and invalid tokens
 - Returns nil for any decode errors (expired, malformed, wrong signature)
 

@@ -3,10 +3,10 @@ class JsonWebToken
 
   # Encode a payload into a JWT token
   # @param payload [Hash] The data to encode in the token
-  # @param exp [Integer] Optional expiration time (defaults to 24 hours from now)
+  # @param exp [Integer] Optional expiration time (defaults to JWT_EXPIRATION_DAYS env var, or 30 days)
   # @return [String] The encoded JWT token
   def self.encode(payload, exp: nil)
-    payload[:exp] = exp || 24.hours.from_now.to_i
+    payload[:exp] = exp || default_expiration_time
     JWT.encode(payload, SECRET_KEY, "HS256")
   end
 
@@ -20,5 +20,13 @@ class JsonWebToken
     HashWithIndifferentAccess.new(decoded.first)
   rescue JWT::DecodeError, JWT::ExpiredSignature
     nil
+  end
+
+  private
+
+  def self.default_expiration_time
+    days = ENV.fetch('JWT_EXPIRATION_DAYS', '30').to_i
+    days = 30 if days <= 0 || days > 365  # Bounds validation
+    days.days.from_now.to_i
   end
 end

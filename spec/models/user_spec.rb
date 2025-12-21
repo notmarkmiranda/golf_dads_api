@@ -203,11 +203,11 @@ RSpec.describe User, type: :model do
       expect(decoded['email']).to eq(user.email_address)
     end
 
-    it 'token expires in 24 hours by default' do
+    it 'token expires in 30 days by default' do
       token = user.generate_jwt
       decoded = JsonWebToken.decode(token)
       exp_time = Time.at(decoded['exp'])
-      expect(exp_time).to be_within(5.seconds).of(24.hours.from_now)
+      expect(exp_time).to be_within(5.seconds).of(30.days.from_now)
     end
   end
 

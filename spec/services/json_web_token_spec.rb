@@ -15,10 +15,10 @@ RSpec.describe JsonWebToken do
       expect(decoded.first['user_id']).to eq(1)
     end
 
-    it 'sets expiration time to 24 hours from now' do
+    it 'sets expiration time to 30 days from now' do
       decoded = JWT.decode(token, Rails.application.credentials.secret_key_base, true, algorithm: 'HS256')
       exp_time = Time.at(decoded.first['exp'])
-      expect(exp_time).to be_within(5.seconds).of(24.hours.from_now)
+      expect(exp_time).to be_within(5.seconds).of(30.days.from_now)
     end
 
     it 'accepts custom expiration time' do
