@@ -25,7 +25,7 @@ class JsonWebToken
   private
 
   def self.default_expiration_time
-    days = ENV.fetch('JWT_EXPIRATION_DAYS', '30').to_i
+    days = ENV.fetch("JWT_EXPIRATION_DAYS", "30").to_i
     days = 30 if days <= 0 || days > 365  # Bounds validation
     days.days.from_now.to_i
   end
