@@ -81,21 +81,27 @@ module Api
       # POST /api/v1/groups/join_with_code
       # Join a group using an invite code
       def join_with_code
+        # Require authentication
+        return unless require_authentication
+
         invite_code = params[:invite_code]
 
+        # Sanitize: strip whitespace and upcase to match stored format
+        invite_code = invite_code&.strip&.upcase
+
         if invite_code.blank?
-          return error_response("Invite code is required", :bad_request)
+          return error_response(message: "Invite code is required", status: :bad_request)
         end
 
         group = Group.find_by_invite_code(invite_code)
 
         if group.nil?
-          return error_response("Invalid invite code", :not_found)
+          return error_response(message: "Invalid invite code", status: :not_found)
         end
 
         # Check if already a member
         if group.members.include?(current_user)
-          return error_response("You are already a member of this group", :unprocessable_entity)
+          return error_response(message: "You are already a member of this group", status: :unprocessable_entity)
         end
 
         # Add user to group
@@ -109,6 +115,15 @@ module Api
         else
           validation_error_response(group_membership.errors.messages)
         end
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "Join group validation error: #{e.message}"
+        validation_error_response(e.record.errors.messages)
+      rescue StandardError => e
+        Rails.logger.error "Join group error: #{e.class} - #{e.message}"
+        error_response(
+          message: "Unable to join group. Please try again.",
+          status: :internal_server_error
+        )
       end
 
       # POST /api/v1/groups/:id/leave

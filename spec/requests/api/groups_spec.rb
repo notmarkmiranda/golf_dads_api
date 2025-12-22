@@ -754,4 +754,152 @@ RSpec.describe 'Api::Groups', type: :request do
       end
     end
   end
+
+  describe 'POST /api/v1/groups/join_with_code' do
+    let!(:group) { create(:group, owner: other_user, name: 'Test Group') }
+
+    context 'with valid invite code' do
+      it 'successfully joins the group' do
+        expect {
+          post '/api/v1/groups/join_with_code',
+               params: { invite_code: group.invite_code },
+               headers: { 'Authorization' => "Bearer #{token}" }
+        }.to change { group.members.count }.by(1)
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['message']).to eq("Successfully joined #{group.name}")
+        expect(json['group']['id']).to eq(group.id)
+
+        # Verify membership was created
+        expect(group.members.reload).to include(user)
+      end
+
+      it 'handles invite code with mixed case' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: group.invite_code.downcase },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['group']['id']).to eq(group.id)
+      end
+
+      it 'handles invite code with whitespace' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: "  #{group.invite_code}  " },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json['group']['id']).to eq(group.id)
+      end
+    end
+
+    context 'with invalid invite code' do
+      it 'returns error message for non-existent code' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: 'INVALID1' },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq("Invalid invite code")
+      end
+
+      it 'returns error for malformed code (too short)' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: 'ABC123' },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq("Invalid invite code")
+      end
+
+      it 'returns error for malformed code (special characters)' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: 'ABC123@#' },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq("Invalid invite code")
+      end
+
+      it 'returns error when invite code is blank' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: '' },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Invite code is required')
+      end
+
+      it 'returns error when invite code is missing' do
+        post '/api/v1/groups/join_with_code',
+             params: {},
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Invite code is required')
+      end
+    end
+
+    context 'when already a member' do
+      before do
+        create(:group_membership, user: user, group: group)
+      end
+
+      it 'returns error' do
+        expect {
+          post '/api/v1/groups/join_with_code',
+               params: { invite_code: group.invite_code },
+               headers: { 'Authorization' => "Bearer #{token}" }
+        }.not_to change(GroupMembership, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('You are already a member of this group')
+      end
+    end
+
+    context 'when not authenticated' do
+      it 'returns unauthorized' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: group.invite_code }
+
+        expect(response).to have_http_status(:unauthorized)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Unauthorized')
+      end
+    end
+
+    context 'edge cases' do
+      it 'handles SQL injection attempts safely' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: "'; DROP TABLE groups; --" },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq("Invalid invite code")
+
+        # Verify groups table still exists
+        expect(Group.count).to be > 0
+      end
+
+      it 'handles nil invite code gracefully' do
+        post '/api/v1/groups/join_with_code',
+             params: { invite_code: nil },
+             headers: { 'Authorization' => "Bearer #{token}" }
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Invite code is required')
+      end
+    end
+  end
 end
