@@ -9,8 +9,14 @@ RSpec.describe TeeTimeReminderJob, type: :job do
   let(:golf_course) { create(:golf_course, name: 'Test Course') }
 
   before do
+    # Create device tokens for users
+    create(:device_token, user: owner)
+    create(:device_token, user: reserver1)
+    create(:device_token, user: reserver2)
+
     # Stub PushNotificationService
     allow(PushNotificationService).to receive(:send_to_user).and_return(true)
+    allow(PushNotificationService).to receive(:format_tee_time_for_device).and_call_original
   end
 
   describe '#perform' do
@@ -65,20 +71,14 @@ RSpec.describe TeeTimeReminderJob, type: :job do
       end
     end
 
-    it 'includes course name and time in body' do
-      freeze_time do
-        expected_date = tee_time_24h.tee_time.strftime("%b %-d")
-        expected_time = tee_time_24h.tee_time.strftime("%-I:%M %p")
-
-        expect(PushNotificationService).to receive(:send_to_user).with(
-          owner,
-          hash_including(
-            body: /Test Course.*#{expected_date}.*#{expected_time}/
-          )
-        ).at_least(:once)
-
-        TeeTimeReminderJob.perform_now
+    it 'includes course name and formatted time in body' do
+      expect(PushNotificationService).to receive(:send_to_user).at_least(:once) do |user, options|
+        expect(options[:body]).to include('Test Course')
+        expect(options[:body]).to match(/on \w+ \d+ at \d+:\d+(am|pm)/)
+        true
       end
+
+      TeeTimeReminderJob.perform_now
     end
 
     it 'respects user reminder preferences' do
@@ -197,6 +197,76 @@ RSpec.describe TeeTimeReminderJob, type: :job do
 
       allow(Rails.logger).to receive(:info)
       expect(Rails.logger).to receive(:info).with(/Sent 2h reminders for 1 tee times/)
+
+      TeeTimeReminderJob.perform_now
+    end
+  end
+
+  describe 'timezone-aware formatting' do
+    let!(:tee_time_tz) do
+      create(
+        :tee_time_posting,
+        user: owner,
+        golf_course: golf_course,
+        tee_time: Time.utc(2025, 12, 25, 17, 15) # 5:15pm UTC on Dec 25
+      )
+    end
+
+    before do
+      # Set tee time to be 24 hours from now for the job to pick it up
+      travel_to Time.utc(2025, 12, 24, 17, 15) # 24 hours before tee time
+    end
+
+    after do
+      travel_back
+    end
+
+    it 'formats times in each user timezone' do
+      # Set up users with different timezones
+      owner_token = owner.device_tokens.first
+      reserver1_token = reserver1.device_tokens.first
+      owner_token.update!(timezone: 'America/Denver')     # MST
+      reserver1_token.update!(timezone: 'America/Los_Angeles') # PST
+
+      create(:reservation, user: reserver1, tee_time_posting: tee_time_tz)
+
+      # Expect different times for each user
+      expect(PushNotificationService).to receive(:send_to_user).exactly(2).times do |user, options|
+        if user == owner
+          # 5:15pm UTC = 10:15am MST
+          expect(options[:body]).to include('10:15am')
+          expect(options[:body]).not_to include('UTC')
+        elsif user == reserver1
+          # 5:15pm UTC = 9:15am PST
+          expect(options[:body]).to include('9:15am')
+          expect(options[:body]).not_to include('UTC')
+        end
+        true
+      end
+
+      TeeTimeReminderJob.perform_now
+    end
+
+    it 'shows UTC suffix for devices without timezone' do
+      # Owner has no timezone set
+      owner_token = owner.device_tokens.first
+      reserver1_token = reserver1.device_tokens.first
+      owner_token.update!(timezone: nil)
+      reserver1_token.update!(timezone: 'America/Denver')
+
+      create(:reservation, user: reserver1, tee_time_posting: tee_time_tz)
+
+      expect(PushNotificationService).to receive(:send_to_user).exactly(2).times do |user, options|
+        if user == owner
+          # No timezone - should show UTC
+          expect(options[:body]).to include('5:15pm UTC')
+        elsif user == reserver1
+          # Has timezone - should not show UTC
+          expect(options[:body]).to include('10:15am')
+          expect(options[:body]).not_to include('UTC')
+        end
+        true
+      end
 
       TeeTimeReminderJob.perform_now
     end

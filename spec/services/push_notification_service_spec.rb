@@ -150,4 +150,94 @@ RSpec.describe PushNotificationService, type: :service do
       expect(result[:failure_count]).to eq(1)
     end
   end
+
+  describe '.format_tee_time_for_device' do
+    let(:user) { create(:user) }
+    let(:tee_time) { Time.utc(2025, 12, 25, 17, 15) } # 5:15pm UTC (Dec 25)
+
+    context 'with device timezone set' do
+      it 'formats time in Mountain Time without timezone suffix' do
+        device_token = create(:device_token, user: user, timezone: 'America/Denver')
+        result = PushNotificationService.format_tee_time_for_device(tee_time, device_token)
+
+        # 5:15pm UTC = 10:15am MST
+        expect(result).to eq('Dec 25 at 10:15am')
+        expect(result).not_to include('UTC')
+      end
+
+      it 'formats time in Pacific Time without timezone suffix' do
+        device_token = create(:device_token, user: user, timezone: 'America/Los_Angeles')
+        result = PushNotificationService.format_tee_time_for_device(tee_time, device_token)
+
+        # 5:15pm UTC = 9:15am PST
+        expect(result).to eq('Dec 25 at 9:15am')
+        expect(result).not_to include('UTC')
+      end
+
+      it 'formats time in Eastern Time without timezone suffix' do
+        device_token = create(:device_token, user: user, timezone: 'America/New_York')
+        result = PushNotificationService.format_tee_time_for_device(tee_time, device_token)
+
+        # 5:15pm UTC = 12:15pm EST
+        expect(result).to eq('Dec 25 at 12:15pm')
+        expect(result).not_to include('UTC')
+      end
+
+      it 'handles times after midnight in local timezone' do
+        late_time = Time.utc(2025, 12, 26, 6, 30) # 6:30am UTC (Dec 26)
+        device_token = create(:device_token, user: user, timezone: 'America/Denver')
+        result = PushNotificationService.format_tee_time_for_device(late_time, device_token)
+
+        # 6:30am UTC Dec 26 = 11:30pm MST Dec 25
+        expect(result).to eq('Dec 25 at 11:30pm')
+      end
+
+      it 'formats single-digit hours without leading zero' do
+        morning_time = Time.utc(2025, 12, 25, 15, 5) # 3:05pm UTC
+        device_token = create(:device_token, user: user, timezone: 'America/Denver')
+        result = PushNotificationService.format_tee_time_for_device(morning_time, device_token)
+
+        # 3:05pm UTC = 8:05am MST
+        expect(result).to eq('Dec 25 at 8:05am')
+        expect(result).not_to match(/08:05/) # Should not have leading zero
+      end
+    end
+
+    context 'without device timezone (backward compatibility)' do
+      it 'formats time in UTC with UTC suffix' do
+        device_token = create(:device_token, user: user, timezone: nil)
+        result = PushNotificationService.format_tee_time_for_device(tee_time, device_token)
+
+        expect(result).to eq('Dec 25 at 5:15pm UTC')
+        expect(result).to include('UTC')
+      end
+
+      it 'formats time in UTC with blank timezone' do
+        device_token = create(:device_token, user: user, timezone: '')
+        result = PushNotificationService.format_tee_time_for_device(tee_time, device_token)
+
+        expect(result).to eq('Dec 25 at 5:15pm UTC')
+        expect(result).to include('UTC')
+      end
+    end
+
+    context 'with different dates' do
+      it 'formats January date correctly' do
+        jan_time = Time.utc(2025, 1, 15, 17, 15)
+        device_token = create(:device_token, user: user, timezone: 'America/Denver')
+        result = PushNotificationService.format_tee_time_for_device(jan_time, device_token)
+
+        expect(result).to eq('Jan 15 at 10:15am')
+      end
+
+      it 'formats single-digit day without leading zero' do
+        single_day = Time.utc(2025, 3, 5, 17, 15)
+        device_token = create(:device_token, user: user, timezone: 'America/Denver')
+        result = PushNotificationService.format_tee_time_for_device(single_day, device_token)
+
+        expect(result).to eq('Mar 5 at 10:15am')
+        expect(result).not_to match(/Mar 05/) # Should not have leading zero
+      end
+    end
+  end
 end

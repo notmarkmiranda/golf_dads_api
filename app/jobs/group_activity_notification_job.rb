@@ -14,10 +14,7 @@ class GroupActivityNotificationJob < ApplicationJob
 
     poster = tee_time.user
     poster_name = poster.name || poster.email_address.split("@").first
-
     course_name = tee_time.golf_course&.name || "Unknown Course"
-    tee_time_date = tee_time.tee_time.strftime("%b %-d")
-    tee_time_time = tee_time.tee_time.strftime("%-I:%M %p")
 
     # Notify all group members (except poster and muted users)
     tee_time.groups.each do |group|
@@ -26,16 +23,14 @@ class GroupActivityNotificationJob < ApplicationJob
         tee_time: tee_time,
         poster: poster,
         poster_name: poster_name,
-        course_name: course_name,
-        tee_time_date: tee_time_date,
-        tee_time_time: tee_time_time
+        course_name: course_name
       )
     end
   end
 
   private
 
-  def notify_group_members(group:, tee_time:, poster:, poster_name:, course_name:, tee_time_date:, tee_time_time:)
+  def notify_group_members(group:, tee_time:, poster:, poster_name:, course_name:)
     # Get all group members except the poster
     members = group.members.where.not(id: poster.id)
 
@@ -46,17 +41,27 @@ class GroupActivityNotificationJob < ApplicationJob
 
     members_to_notify = members.where.not(id: muted_user_ids)
 
-    # Send notification to each member
-    PushNotificationService.send_to_users(
-      members_to_notify,
-      title: "#{group.name}",
-      body: "#{poster_name} posted a tee time at #{course_name} on #{tee_time_date} at #{tee_time_time}",
-      data: {
-        type: "group_tee_time",
-        tee_time_id: tee_time.id,
-        group_id: group.id
-      },
-      notification_type: :group_tee_time
-    )
+    # Send notification to each member's device tokens with timezone-specific formatting
+    members_to_notify.each do |member|
+      member.device_tokens.active.each do |device_token|
+        # Format tee time in device's timezone
+        formatted_time = PushNotificationService.format_tee_time_for_device(
+          tee_time.tee_time,
+          device_token
+        )
+
+        PushNotificationService.send_to_user(
+          member,
+          title: group.name,
+          body: "#{poster_name} posted a tee time at #{course_name} on #{formatted_time}",
+          data: {
+            type: "group_tee_time",
+            tee_time_id: tee_time.id,
+            group_id: group.id
+          },
+          notification_type: :group_tee_time
+        )
+      end
+    end
   end
 end

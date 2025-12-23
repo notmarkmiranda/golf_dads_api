@@ -59,6 +59,91 @@ RSpec.describe 'Api::V1::DeviceTokens', type: :request do
           expect(Time.parse(json['last_used_at'])).to be_within(1.second).of(Time.current)
         end
       end
+
+      context 'with timezone parameter' do
+        it 'creates device token with timezone' do
+          params = {
+            device_token: {
+              token: 'fcm_token_with_tz',
+              platform: 'ios',
+              timezone: 'America/Denver'
+            }
+          }
+
+          post '/api/v1/device_tokens',
+            params: params,
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:created)
+          json = JSON.parse(response.body)
+          expect(json['timezone']).to eq('America/Denver')
+
+          device_token = DeviceToken.find_by(token: 'fcm_token_with_tz')
+          expect(device_token.timezone).to eq('America/Denver')
+        end
+
+        it 'updates timezone for existing token' do
+          existing_token = create(:device_token, user: user, token: 'fcm_token_12345', timezone: 'America/New_York')
+
+          params = {
+            device_token: {
+              token: 'fcm_token_12345',
+              platform: 'ios',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+
+          post '/api/v1/device_tokens',
+            params: params,
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:created)
+          existing_token.reload
+          expect(existing_token.timezone).to eq('America/Los_Angeles')
+        end
+
+        it 'accepts nil timezone (backward compatibility)' do
+          params = {
+            device_token: {
+              token: 'fcm_token_no_tz',
+              platform: 'ios'
+            }
+          }
+
+          post '/api/v1/device_tokens',
+            params: params,
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:created)
+          json = JSON.parse(response.body)
+          expect(json['timezone']).to be_nil
+
+          device_token = DeviceToken.find_by(token: 'fcm_token_no_tz')
+          expect(device_token.timezone).to be_nil
+        end
+
+        it 'rejects invalid timezone' do
+          params = {
+            device_token: {
+              token: 'fcm_token_invalid_tz',
+              platform: 'ios',
+              timezone: 'Invalid/Timezone'
+            }
+          }
+
+          post '/api/v1/device_tokens',
+            params: params,
+            headers: auth_headers,
+            as: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          json = JSON.parse(response.body)
+          expect(json['errors']['timezone']).to include('is not a valid timezone identifier')
+        end
+      end
     end
 
     context 'without authentication' do

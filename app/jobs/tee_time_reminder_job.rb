@@ -51,26 +51,30 @@ class TeeTimeReminderJob < ApplicationJob
     users_to_notify.uniq!
 
     course_name = tee_time.golf_course&.name || "Unknown Course"
-    tee_time_date = tee_time.tee_time.strftime("%b %-d")
-    tee_time_time = tee_time.tee_time.strftime("%-I:%M %p")
-
     notification_type = timeframe == "24h" ? :reminder_24h : :reminder_2h
     title = timeframe == "24h" ? "Tee Time Tomorrow" : "Tee Time in 2 Hours"
-    body = "#{course_name} on #{tee_time_date} at #{tee_time_time}"
 
-    # Send to each user (respecting their reminder preferences)
+    # Send to each user's device tokens with timezone-specific formatting
     users_to_notify.each do |user|
-      PushNotificationService.send_to_user(
-        user,
-        title: title,
-        body: body,
-        data: {
-          type: "reminder",
-          tee_time_id: tee_time.id,
-          timeframe: timeframe
-        },
-        notification_type: notification_type
-      )
+      user.device_tokens.active.each do |device_token|
+        # Format tee time in device's timezone
+        formatted_time = PushNotificationService.format_tee_time_for_device(
+          tee_time.tee_time,
+          device_token
+        )
+
+        PushNotificationService.send_to_user(
+          user,
+          title: title,
+          body: "#{course_name} on #{formatted_time}",
+          data: {
+            type: "reminder",
+            tee_time_id: tee_time.id,
+            timeframe: timeframe
+          },
+          notification_type: notification_type
+        )
+      end
     end
   end
 end

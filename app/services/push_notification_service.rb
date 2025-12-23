@@ -83,6 +83,28 @@ class PushNotificationService
       results
     end
 
+    # Format tee time for a specific device's timezone
+    #
+    # @param tee_time [ActiveSupport::TimeWithZone] The tee time in UTC
+    # @param device_token [DeviceToken] The device token (may have timezone)
+    # @return [String] Formatted string like "Dec 25 at 10:15am" or "Dec 25 at 5:15pm UTC"
+    def format_tee_time_for_device(tee_time, device_token)
+      tz = device_token.time_zone
+
+      if tz
+        # Device has timezone - format in local time, no timezone shown
+        local_time = tee_time.in_time_zone(tz)
+        date = local_time.strftime("%b %-d")
+        time = local_time.strftime("%-I:%M%p").downcase
+        "#{date} at #{time}"
+      else
+        # Fallback for devices without timezone - show UTC suffix
+        date = tee_time.strftime("%b %-d")
+        time = tee_time.strftime("%-I:%M%p").downcase
+        "#{date} at #{time} UTC"
+      end
+    end
+
     private
 
     # Check if notification should be sent based on user preferences

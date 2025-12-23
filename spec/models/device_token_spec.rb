@@ -13,6 +13,45 @@ RSpec.describe DeviceToken, type: :model do
     it { should validate_presence_of(:platform) }
     it { should validate_uniqueness_of(:token) }
     it { should validate_inclusion_of(:platform).in_array(%w[ios android]) }
+
+    describe 'timezone validation' do
+      it 'accepts valid IANA timezone identifiers' do
+        device_token = build(:device_token, timezone: 'America/Denver')
+        expect(device_token).to be_valid
+      end
+
+      it 'accepts nil timezone' do
+        device_token = build(:device_token, timezone: nil)
+        expect(device_token).to be_valid
+      end
+
+      it 'accepts blank timezone' do
+        device_token = build(:device_token, timezone: '')
+        expect(device_token).to be_valid
+      end
+
+      it 'rejects invalid timezone identifiers' do
+        device_token = build(:device_token, timezone: 'Invalid/Timezone')
+        expect(device_token).not_to be_valid
+        expect(device_token.errors[:timezone]).to include('is not a valid timezone identifier')
+      end
+
+      it 'accepts various valid timezones' do
+        valid_timezones = [
+          'America/New_York',
+          'America/Los_Angeles',
+          'America/Chicago',
+          'Europe/London',
+          'Asia/Tokyo',
+          'Pacific/Auckland'
+        ]
+
+        valid_timezones.each do |tz|
+          device_token = build(:device_token, timezone: tz)
+          expect(device_token).to be_valid, "Expected #{tz} to be valid"
+        end
+      end
+    end
   end
 
   describe 'attributes' do
@@ -88,6 +127,42 @@ RSpec.describe DeviceToken, type: :model do
         device_token.update_column(:last_used_at, nil)
 
         expect(DeviceToken.stale).to include(device_token)
+      end
+    end
+  end
+
+  describe '#time_zone' do
+    let(:user) { create(:user) }
+
+    it 'returns TimeZone object for valid timezone' do
+      device_token = create(:device_token, user: user, timezone: 'America/Denver')
+      time_zone = device_token.time_zone
+
+      expect(time_zone).to be_a(ActiveSupport::TimeZone)
+      expect(time_zone.name).to eq('America/Denver')
+    end
+
+    it 'returns nil for nil timezone' do
+      device_token = create(:device_token, user: user, timezone: nil)
+      expect(device_token.time_zone).to be_nil
+    end
+
+    it 'returns nil for blank timezone' do
+      device_token = create(:device_token, user: user, timezone: '')
+      expect(device_token.time_zone).to be_nil
+    end
+
+    it 'handles various timezone formats' do
+      timezones = {
+        'America/New_York' => 'America/New_York',
+        'America/Los_Angeles' => 'America/Los_Angeles',
+        'UTC' => 'UTC',
+        'Europe/London' => 'Europe/London'
+      }
+
+      timezones.each do |input, expected_name|
+        device_token = create(:device_token, user: user, token: "token_#{input}", timezone: input)
+        expect(device_token.time_zone.name).to eq(expected_name)
       end
     end
   end
