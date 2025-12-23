@@ -37,7 +37,7 @@ RSpec.describe GroupActivityNotificationJob, type: :job do
   describe '#perform' do
     it 'sends notification to group members except poster' do
       expect(PushNotificationService).to receive(:send_to_user).exactly(2).times do |user, options|
-        expect([member1, member2]).to include(user)
+        expect([ member1, member2 ]).to include(user)
         expect(options[:title]).to eq('Golf Buddies')
         expect(options[:body]).to include('Poster')
         expect(options[:body]).to include('Test Course')
