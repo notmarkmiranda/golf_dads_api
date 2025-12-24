@@ -95,6 +95,47 @@ RSpec.describe 'Api::V1::NotificationPreferences', type: :request do
         expect(preference.reservations_enabled).to eq(false)
         expect(preference.group_activity_enabled).to eq(true) # unchanged
       end
+
+      it 'accepts correct format for numbered reminder fields' do
+        # Verify backend accepts reminder_24h_enabled (correct format)
+        patch '/api/v1/notification_preferences',
+          params: {
+            notification_preferences: {
+              reminder_24h_enabled: false,
+              reminder_2h_enabled: false
+            }
+          },
+          headers: auth_headers,
+          as: :json
+
+        expect(response).to have_http_status(:ok)
+        preference.reload
+        expect(preference.reminder_24h_enabled).to eq(false)
+        expect(preference.reminder_2h_enabled).to eq(false)
+      end
+
+      it 'rejects incorrect format for numbered reminder fields' do
+        # Verify backend rejects reminder24_h_enabled (incorrect format)
+        # This is what iOS was sending before the fix
+        initial_24h_state = preference.reminder_24h_enabled
+
+        patch '/api/v1/notification_preferences',
+          params: {
+            notification_preferences: {
+              reminder24_h_enabled: false,  # Wrong format - should be reminder_24h_enabled
+              reminder2_h_enabled: false    # Wrong format - should be reminder_2h_enabled
+            }
+          },
+          headers: auth_headers,
+          as: :json
+
+        # Request should succeed (200) but unpermitted params are ignored
+        expect(response).to have_http_status(:ok)
+
+        # Verify the values were NOT changed (unpermitted params ignored)
+        preference.reload
+        expect(preference.reminder_24h_enabled).to eq(initial_24h_state)
+      end
     end
 
     context 'without authentication' do
