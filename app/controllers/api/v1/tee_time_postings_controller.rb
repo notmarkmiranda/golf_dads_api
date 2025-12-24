@@ -91,7 +91,11 @@ module Api
       # GET /api/v1/tee_time_postings/my_postings
       def my_postings
         authorize TeeTimePosting
-        @tee_time_postings = policy_scope(TeeTimePosting).where(user_id: current_user.id)
+        # Only show tee times from last 6 hours onwards, ordered by soonest first
+        @tee_time_postings = policy_scope(TeeTimePosting)
+          .where(user_id: current_user.id)
+          .where("tee_time > ?", 6.hours.ago)
+          .order(tee_time: :asc)
         render json: { tee_time_postings: @tee_time_postings }, status: :ok
       end
 

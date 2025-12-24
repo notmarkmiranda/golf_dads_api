@@ -49,7 +49,13 @@ module Api
       # GET /api/v1/reservations/my_reservations
       def my_reservations
         authorize Reservation
-        @reservations = policy_scope(Reservation).includes(:tee_time_posting).where(user_id: current_user.id)
+        # Only show reservations for tee times from last 6 hours onwards, ordered by soonest first
+        @reservations = policy_scope(Reservation)
+          .includes(:tee_time_posting)
+          .joins(:tee_time_posting)
+          .where(user_id: current_user.id)
+          .where("tee_time_postings.tee_time > ?", 6.hours.ago)
+          .order("tee_time_postings.tee_time ASC")
         render json: { reservations: @reservations }, status: :ok
       end
 
