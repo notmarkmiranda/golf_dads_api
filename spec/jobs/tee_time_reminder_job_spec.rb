@@ -203,18 +203,19 @@ RSpec.describe TeeTimeReminderJob, type: :job do
   end
 
   describe 'timezone-aware formatting' do
+    let(:future_tee_time) { 25.hours.from_now } # Ensure it's in the future
     let!(:tee_time_tz) do
       create(
         :tee_time_posting,
         user: owner,
         golf_course: golf_course,
-        tee_time: Time.utc(2025, 12, 25, 17, 15) # 5:15pm UTC on Dec 25
+        tee_time: future_tee_time
       )
     end
 
     before do
-      # Set tee time to be 24 hours from now for the job to pick it up
-      travel_to Time.utc(2025, 12, 24, 17, 15) # 24 hours before tee time
+      # Set current time to be 24 hours before tee time for the job to pick it up
+      travel_to future_tee_time - 24.hours
     end
 
     after do
@@ -225,20 +226,22 @@ RSpec.describe TeeTimeReminderJob, type: :job do
       # Set up users with different timezones
       owner_token = owner.device_tokens.first
       reserver1_token = reserver1.device_tokens.first
-      owner_token.update!(timezone: 'America/Denver')     # MST
-      reserver1_token.update!(timezone: 'America/Los_Angeles') # PST
+      owner_token.update!(timezone: 'America/Denver')     # MST (UTC-7)
+      reserver1_token.update!(timezone: 'America/Los_Angeles') # PST (UTC-8)
 
       create(:reservation, user: reserver1, tee_time_posting: tee_time_tz)
+
+      # Calculate expected times in each timezone
+      denver_time = future_tee_time.in_time_zone('America/Denver')
+      la_time = future_tee_time.in_time_zone('America/Los_Angeles')
 
       # Expect different times for each user
       expect(PushNotificationService).to receive(:send_to_user).exactly(2).times do |user, options|
         if user == owner
-          # 5:15pm UTC = 10:15am MST
-          expect(options[:body]).to include('10:15am')
+          expect(options[:body]).to include(denver_time.strftime('%-I:%M%p').downcase)
           expect(options[:body]).not_to include('UTC')
         elsif user == reserver1
-          # 5:15pm UTC = 9:15am PST
-          expect(options[:body]).to include('9:15am')
+          expect(options[:body]).to include(la_time.strftime('%-I:%M%p').downcase)
           expect(options[:body]).not_to include('UTC')
         end
         true
@@ -256,13 +259,17 @@ RSpec.describe TeeTimeReminderJob, type: :job do
 
       create(:reservation, user: reserver1, tee_time_posting: tee_time_tz)
 
+      # Calculate expected times
+      utc_time = future_tee_time.utc
+      denver_time = future_tee_time.in_time_zone('America/Denver')
+
       expect(PushNotificationService).to receive(:send_to_user).exactly(2).times do |user, options|
         if user == owner
           # No timezone - should show UTC
-          expect(options[:body]).to include('5:15pm UTC')
+          expect(options[:body]).to include(utc_time.strftime('%-I:%M%p').downcase + ' UTC')
         elsif user == reserver1
           # Has timezone - should not show UTC
-          expect(options[:body]).to include('10:15am')
+          expect(options[:body]).to include(denver_time.strftime('%-I:%M%p').downcase)
           expect(options[:body]).not_to include('UTC')
         end
         true
