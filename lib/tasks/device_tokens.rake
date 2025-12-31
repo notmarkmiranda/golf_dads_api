@@ -1,5 +1,5 @@
 namespace :device_tokens do
-  desc 'Clean up duplicate device tokens - keep only most recently used token per user/platform'
+  desc "Clean up duplicate device tokens - keep only most recently used token per user/platform"
   task cleanup: :environment do
     puts "Starting device token cleanup..."
     puts "=" * 80
@@ -31,7 +31,7 @@ namespace :device_tokens do
         puts "  Keeping: #{most_recent.token[0..20]}... (last used: #{most_recent.last_used_at})"
 
         old_tokens.each do |token|
-          puts "  Deleting: #{token.token[0..20]}... (last used: #{token.last_used_at || 'never'})"
+          puts "  Deleting: #{token.token[0..20]}... (last used: #{token.last_used_at || "never"})"
           token.destroy
           deleted_count += 1
         end
@@ -47,7 +47,7 @@ namespace :device_tokens do
     puts "=" * 80
   end
 
-  desc 'Show device token statistics'
+  desc "Show device token statistics"
   task stats: :environment do
     puts "Device Token Statistics"
     puts "=" * 80
@@ -75,7 +75,7 @@ namespace :device_tokens do
     %w[ios android].each do |platform|
       DeviceToken.where(platform: platform)
         .group(:user_id)
-        .having('COUNT(*) > 1')
+        .having("COUNT(*) > 1")
         .count.each do |user_id, count|
         user = User.find(user_id)
         puts "  User #{user_id} (#{user.email_address}): #{count} #{platform} tokens"
