@@ -60,6 +60,34 @@ RSpec.describe 'Api::V1::DeviceTokens', type: :request do
         end
       end
 
+      it 'removes old tokens for same platform when registering new token' do
+        # Create old tokens for this user on iOS
+        old_token1 = create(:device_token, user: user, token: 'old_ios_token_1', platform: 'ios')
+        old_token2 = create(:device_token, user: user, token: 'old_ios_token_2', platform: 'ios')
+        # Create token on different platform (should not be deleted)
+        android_token = create(:device_token, user: user, token: 'android_token', platform: 'android')
+
+        # Register new token for iOS
+        post '/api/v1/device_tokens',
+          params: { device_token: { token: 'new_ios_token', platform: 'ios' } },
+          headers: auth_headers,
+          as: :json
+
+        expect(response).to have_http_status(:created)
+
+        # Verify old iOS tokens were deleted
+        expect(DeviceToken.exists?(old_token1.id)).to be false
+        expect(DeviceToken.exists?(old_token2.id)).to be false
+
+        # Verify Android token was NOT deleted
+        expect(DeviceToken.exists?(android_token.id)).to be true
+
+        # Verify new token exists and is the only iOS token
+        expect(DeviceToken.find_by(token: 'new_ios_token')).to be_present
+        expect(user.device_tokens.where(platform: 'ios').count).to eq(1)
+        expect(user.device_tokens.count).to eq(2) # 1 iOS + 1 Android
+      end
+
       context 'with timezone parameter' do
         it 'creates device token with timezone' do
           params = {

@@ -11,6 +11,10 @@ module Api
         device_token.last_used_at = Time.current
 
         if device_token.save
+          # Clean up old tokens for this user/platform to prevent duplicate notifications
+          # Keep only the most recent token per platform
+          cleanup_old_tokens(device_token)
+
           render json: device_token_response(device_token), status: :created
         else
           validation_error_response(device_token.errors.messages)
@@ -26,6 +30,17 @@ module Api
       end
 
       private
+
+      def cleanup_old_tokens(current_token)
+        # Delete other tokens for this user on the same platform
+        # This prevents duplicate notifications when user reinstalls or switches devices
+        current_user.device_tokens
+          .where(platform: current_token.platform)
+          .where.not(id: current_token.id)
+          .destroy_all
+
+        Rails.logger.info("Cleaned up old device tokens for user #{current_user.id}, platform #{current_token.platform}")
+      end
 
       def token_params
         params.require(:device_token).permit(:token, :platform, :timezone)
