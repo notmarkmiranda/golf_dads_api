@@ -217,68 +217,9 @@ if TeeTimePosting.count == 0 || Rails.env.development?
 puts "⛳ Creating tee time postings..."
 postings = []
 
-# Public postings (visible to everyone)
-postings << TeeTimePosting.create!(
-  user: users[0],
-  tee_time: 2.weeks.from_now.change(hour: 8, min: 0),
-  golf_course: golf_courses[:pebble_beach],
-  course_name: 'Pebble Beach Golf Links',
-  available_spots: 2,
-  total_spots: 4,
-  notes: 'Looking for 2 more players for an early morning round!'
-)
+# All tee times must be associated with groups (no public postings)
 
-postings << TeeTimePosting.create!(
-  user: users[1],
-  tee_time: 3.weeks.from_now.change(hour: 10, min: 30),
-  golf_course: golf_courses[:augusta],
-  course_name: 'Augusta National Golf Club',
-  available_spots: 1,
-  total_spots: 4,
-  notes: 'Need 1 more! Experienced players preferred.'
-)
-
-postings << TeeTimePosting.create!(
-  user: users[2],
-  tee_time: 2.weeks.from_now.change(hour: 13, min: 0),
-  golf_course: golf_courses[:torrey_pines],
-  course_name: 'Torrey Pines Golf Course',
-  available_spots: 3,
-  total_spots: 4,
-  notes: 'Afternoon round at Torrey Pines - ocean views!'
-)
-
-postings << TeeTimePosting.create!(
-  user: users[3],
-  tee_time: 3.weeks.from_now.change(hour: 9, min: 30),
-  golf_course: golf_courses[:pinehurst],
-  course_name: 'Pinehurst Resort - Course No. 2',
-  available_spots: 2,
-  total_spots: 4,
-  notes: 'Classic Donald Ross design - all welcome'
-)
-
-postings << TeeTimePosting.create!(
-  user: users[2],
-  tee_time: 10.days.from_now.change(hour: 11, min: 0),
-  golf_course: golf_courses[:bethpage],
-  course_name: 'Bethpage State Park - Black Course',
-  available_spots: 1,
-  total_spots: 4,
-  notes: 'US Open venue - challenging course!'
-)
-
-postings << TeeTimePosting.create!(
-  user: users[0],
-  tee_time: 2.weeks.from_now.change(hour: 14, min: 30),
-  golf_course: golf_courses[:spyglass],
-  course_name: 'Spyglass Hill Golf Course',
-  available_spots: 2,
-  total_spots: 4,
-  notes: 'Beautiful Pebble Beach area course'
-)
-
-# Group postings (visible only to group members)
+# Weekend Warriors postings
 posting_1 = TeeTimePosting.create!(
   user: users[0],
   tee_time: 10.days.from_now.change(hour: 7, min: 0),
@@ -292,6 +233,31 @@ posting_1.groups << weekend_warriors
 postings << posting_1
 
 posting_2 = TeeTimePosting.create!(
+  user: users[0],
+  tee_time: 2.weeks.from_now.change(hour: 8, min: 0),
+  golf_course: golf_courses[:spyglass],
+  course_name: 'Spyglass Hill Golf Course',
+  available_spots: 3,
+  total_spots: 4,
+  notes: 'Beautiful Pebble Beach area course'
+)
+posting_2.groups << weekend_warriors
+postings << posting_2
+
+posting_3 = TeeTimePosting.create!(
+  user: users[1],
+  tee_time: 2.weeks.from_now.change(hour: 13, min: 0),
+  golf_course: golf_courses[:torrey_pines],
+  course_name: 'Torrey Pines Golf Course',
+  available_spots: 2,
+  total_spots: 4,
+  notes: 'Afternoon round - ocean views!'
+)
+posting_3.groups << weekend_warriors
+postings << posting_3
+
+# Ladies League postings
+posting_4 = TeeTimePosting.create!(
   user: users[1],
   tee_time: 3.weeks.from_now.change(hour: 8, min: 0),
   golf_course: golf_courses[:augusta],
@@ -300,10 +266,23 @@ posting_2 = TeeTimePosting.create!(
   total_spots: 4,
   notes: 'Ladies League - Augusta practice round'
 )
-posting_2.groups << ladies_league
-postings << posting_2
+posting_4.groups << ladies_league
+postings << posting_4
 
-posting_3 = TeeTimePosting.create!(
+posting_5 = TeeTimePosting.create!(
+  user: users[3],
+  tee_time: 3.weeks.from_now.change(hour: 9, min: 30),
+  golf_course: golf_courses[:pinehurst],
+  course_name: 'Pinehurst Resort - Course No. 2',
+  available_spots: 2,
+  total_spots: 4,
+  notes: 'Classic Donald Ross design'
+)
+posting_5.groups << ladies_league
+postings << posting_5
+
+# Corporate Crew postings
+posting_6 = TeeTimePosting.create!(
   user: users[2],
   tee_time: 3.weeks.from_now.change(hour: 17, min: 0),
   golf_course: golf_courses[:bethpage],
@@ -312,8 +291,33 @@ posting_3 = TeeTimePosting.create!(
   total_spots: 4,
   notes: 'Corporate Crew - after-work challenge!'
 )
-posting_3.groups << corporate_crew
-postings << posting_3
+posting_6.groups << corporate_crew
+postings << posting_6
+
+posting_7 = TeeTimePosting.create!(
+  user: users[0],
+  tee_time: 10.days.from_now.change(hour: 17, min: 30),
+  golf_course: golf_courses[:torrey_pines],
+  course_name: 'Torrey Pines Golf Course',
+  available_spots: 1,
+  total_spots: 4,
+  notes: 'Twilight round at Torrey Pines'
+)
+posting_7.groups << corporate_crew
+postings << posting_7
+
+# Early Birds postings
+posting_8 = TeeTimePosting.create!(
+  user: users[0],
+  tee_time: 12.days.from_now.change(hour: 6, min: 30),
+  golf_course: golf_courses[:pebble_beach],
+  course_name: 'Pebble Beach Golf Links',
+  available_spots: 3,
+  total_spots: 4,
+  notes: 'Early Birds - sunrise round!'
+)
+posting_8.groups << early_birds
+postings << posting_8
 
 # Past posting (for testing) - skip validations since it's in the past
 past_posting = TeeTimePosting.new(
@@ -334,7 +338,7 @@ puts "✅ Created #{postings.count} tee time postings"
 puts "📋 Creating reservations..."
 reservations = []
 
-# Reservations on public postings
+# Reservations on Weekend Warriors postings
 reservations << Reservation.create!(
   user: users[2], # Mike reserves
   tee_time_posting: postings[0], # John's Pebble Beach posting
@@ -342,21 +346,28 @@ reservations << Reservation.create!(
 )
 
 reservations << Reservation.create!(
-  user: users[3], # Sarah reserves
-  tee_time_posting: postings[1], # Jane's Augusta posting
-  spots_reserved: 1
-)
-
-# Reservations on group postings
-reservations << Reservation.create!(
   user: users[1], # Jane reserves
-  tee_time_posting: postings[3], # John's Weekend Warriors posting
+  tee_time_posting: postings[1], # John's Spyglass posting
+  spots_reserved: 1
+)
+
+# Reservations on Ladies League postings
+reservations << Reservation.create!(
+  user: users[3], # Sarah reserves
+  tee_time_posting: postings[3], # Jane's Augusta posting
+  spots_reserved: 1
+)
+
+# Reservations on Corporate Crew postings
+reservations << Reservation.create!(
+  user: users[0], # John reserves
+  tee_time_posting: postings[5], # Mike's Bethpage posting
   spots_reserved: 1
 )
 
 reservations << Reservation.create!(
   user: users[3], # Sarah reserves
-  tee_time_posting: postings[4], # Jane's Ladies League posting
+  tee_time_posting: postings[6], # John's Torrey Pines posting
   spots_reserved: 1
 )
 
@@ -372,9 +383,7 @@ puts "👤 Users: #{User.count} (#{User.where(admin: true).count} admin)"
 puts "👨‍👩‍👧‍👦 Groups: #{Group.count}"
 puts "🤝 Group Memberships: #{GroupMembership.count}"
 puts "🏌️ Golf Courses: #{GolfCourse.count}"
-public_postings = TeeTimePosting.public_postings.count
-group_postings = TeeTimePosting.count - public_postings
-puts "⛳ Tee Time Postings: #{TeeTimePosting.count} (#{public_postings} public, #{group_postings} group)"
+puts "⛳ Tee Time Postings: #{TeeTimePosting.count} (all group-based, no public postings)"
 postings_with_location = TeeTimePosting.joins(:golf_course).where.not(golf_courses: { latitude: nil, longitude: nil }).count
 puts "   📍 With location data: #{postings_with_location} (#{((postings_with_location.to_f / TeeTimePosting.count) * 100).round}%)"
 puts "📋 Reservations: #{Reservation.count}"
@@ -383,6 +392,11 @@ puts "\n📝 Test Credentials:"
 puts "Admin: notmarkmiranda@gmail.com / password1234"
 puts "Users: john@example.com, jane@example.com, mike@example.com, sarah@example.com"
 puts "Password for all users: password1234"
+puts "\n🎯 Group Structure:"
+puts "• Weekend Warriors (John) - Members: Jane, Mike"
+puts "• Early Birds (John) - Solo"
+puts "• Ladies League (Jane) - Members: Sarah"
+puts "• Corporate Crew (Mike) - Members: John, Sarah"
 puts "\n🚀 Ready to test the API!"
 puts "\n📍 Location Features:"
 puts "• All tee times have golf course associations with coordinates"
